@@ -8,57 +8,57 @@
   <meta name="apple-mobile-web-app-title" content="自驾乐游天下">
   <meta name="mobile-web-app-capable" content="yes">
   <title>自驾乐游天下 - 多家庭出游记账</title>
-  
-  <!-- PWA Manifest -->
-  <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIuiHqumqm+S5kOa4uOWkqeS4iyIsCiAgInNob3J0X25hbWUiOiAi6Ieq6am+6K6w6LSmIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmNWYzZjAiLAogICJ0aGVtZV9jb2xvciI6ICIjYzhhYThhIiwKICAiaWNvbnMiOiBbXQp9">
-  
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%2387CEEB'/><stop offset='100%25' style='stop-color:%2343A047'/></linearGradient></defs><rect width='512' height='512' rx='100' fill='url(%23bg)'/><circle cx='380' cy='120' r='60' fill='%23FFD54F' opacity='0.9'/><path d='M0 350 L100 280 L200 310 L300 220 L400 280 L512 300 L512 512 L0 512Z' fill='%2366BB6A' opacity='0.8'/><path d='M0 420 L120 370 L220 400 L320 330 L420 380 L512 370 L512 512 L0 512Z' fill='%2343A047'/><text x='256' y='300' text-anchor='middle' font-size='130' font-weight='900' fill='%23FFD54F'>🚙</text></svg>">
+  <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%2387CEEB'/><stop offset='100%25' style='stop-color:%2343A047'/></linearGradient></defs><rect width='512' height='512' rx='120' fill='url(%23bg)'/><circle cx='380' cy='120' r='60' fill='%23FFD54F' opacity='0.9'/><path d='M0 350 L100 280 L200 310 L300 220 L400 280 L512 300 L512 512 L0 512Z' fill='%2366BB6A' opacity='0.8'/><path d='M0 420 L120 370 L220 400 L320 330 L420 380 L512 370 L512 512 L0 512Z' fill='%2343A047'/><text x='256' y='300' text-anchor='middle' font-size='130' font-weight='900' fill='%23FFD54F'>🚙</text></svg>">
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
-    /* 所有样式保持不变 */
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Serif SC', sans-serif; }
-    body { background: #f5f3f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-    .app-container { max-width: 480px; width: 100%; background: #ffffff; border-radius: 32px; box-shadow: 0 20px 35px rgba(0,0,0,0.05); overflow: hidden; position: relative; height: 90vh; display: flex; flex-direction: column; }
-    
-    /* 启动界面 */
-    .splash-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0a1628; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.8s ease; overflow: hidden; }
+    body { background: #f0f4f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    .app-container { max-width: 480px; width: 100%; background: #ffffff; border-radius: 32px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); overflow: hidden; position: relative; height: 90vh; display: flex; flex-direction: column; }
+
+    .splash-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, #87CEEB 0%, #B0E0E6 20%, #E0F0FF 40%, #FFF8DC 60%, #F5F5DC 80%, #FAEBD7 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.8s ease; overflow: hidden; }
     .splash-screen.hidden { opacity: 0; pointer-events: none; }
-    .nature-sky { position: absolute; top: 0; width: 100%; height: 100%; background: linear-gradient(180deg, #0a1628 0%, #0d2137 8%, #15355a 18%, #1a4a7a 28%, #2d6da8 38%, #4a90c4 48%, #7ab8d4 55%, #a8d4e6 60%, #c5e0d5 65%, #8bb8a0 70%, #5a9a7a 75%, #3d7a5a 80%, #2a5a3d 88%, #1a3a25 95%, #0d1f12 100%); }
-    .morning-sun { position: absolute; top: 22%; left: 50%; transform: translate(-50%,-50%); width: 80px; height: 80px; background: radial-gradient(circle at 48% 48%, #fffef5 0%, #fff9c4 20%, #ffe082 40%, #ffcc80 60%, #ffab40 80%, #ff8f00 100%); border-radius: 50%; box-shadow: 0 0 40px rgba(255,200,100,0.8), 0 0 80px rgba(255,180,80,0.6); z-index: 2; animation: morningGlow 4s ease-in-out infinite; }
-    @keyframes morningGlow { 0%,100%{box-shadow:0 0 40px rgba(255,200,100,0.8);} 50%{box-shadow:0 0 55px rgba(255,220,130,1),0 0 110px rgba(255,200,100,0.8);} }
-    .lake-reflection { position: absolute; top: 62%; left: 50%; transform: translateX(-50%); width: 200px; height: 40px; background: linear-gradient(180deg, rgba(255,200,100,0.5) 0%, transparent 100%); border-radius: 50%; filter: blur(6px); z-index: 3; }
-    .nature-cloud { position: absolute; background: white; border-radius: 50%; opacity: 0.7; filter: blur(2px); z-index: 3; }
-    .cloud-group-nature { position: absolute; animation: natureCloudDrift 20s ease-in-out infinite; }
-    .cloud-group-nature:nth-child(2) { animation-delay: -7s; }
-    .cloud-group-nature:nth-child(3) { animation-delay: -14s; }
-    @keyframes natureCloudDrift { 0%,100%{transform:translateX(0);} 25%{transform:translateX(20px);} 75%{transform:translateX(-15px);} }
-    .mountain-layer { position: absolute; bottom: 38%; width: 100%; height: 30%; z-index: 4; }
-    .nature-mountain { position: absolute; bottom: 0; background: linear-gradient(180deg, #4a7a5a 0%, #2a4a3a 60%, #1a2a1a 100%); }
-    .nature-mountain:nth-child(1) { left: -10%; width: 60%; height: 80%; clip-path: polygon(0% 100%, 8% 50%, 20% 65%, 35% 25%, 50% 55%, 65% 30%, 80% 50%, 90% 35%, 100% 100%); opacity: 0.7; }
-    .nature-mountain:nth-child(2) { left: 20%; width: 55%; height: 95%; clip-path: polygon(0% 100%, 10% 40%, 25% 60%, 40% 20%, 55% 50%, 70% 30%, 85% 45%, 100% 100%); opacity: 0.85; }
-    .nature-mountain:nth-child(3) { left: 50%; width: 60%; height: 70%; clip-path: polygon(0% 100%, 15% 45%, 30% 60%, 50% 35%, 70% 55%, 85% 40%, 100% 100%); opacity: 0.75; }
-    .forest-layer { position: absolute; bottom: 30%; width: 100%; height: 15%; z-index: 5; background: linear-gradient(180deg, #3d6a4a 0%, #2a4a3a 50%, #1a3a25 100%); clip-path: polygon(0% 60%, 3% 40%, 7% 55%, 12% 30%, 18% 50%, 22% 35%, 28% 45%, 33% 25%, 38% 40%, 44% 30%, 50% 48%, 55% 28%, 60% 42%, 66% 35%, 72% 50%, 78% 30%, 84% 45%, 90% 35%, 95% 48%, 100% 40%, 100% 100%, 0% 100%); }
-    .lake-surface { position: absolute; bottom: 15%; width: 100%; height: 20%; z-index: 6; background: linear-gradient(180deg, rgba(100,180,200,0.4) 0%, rgba(80,160,180,0.5) 30%, rgba(60,140,160,0.6) 60%, rgba(40,100,130,0.5) 100%); clip-path: ellipse(120% 100% at 50% 0%); }
-    .lake-shimmer { position: absolute; bottom: 18%; width: 100%; height: 15%; z-index: 7; background: repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(255,255,255,0.08) 20px, rgba(255,255,255,0.08) 22px); animation: shimmer 5s linear infinite; }
-    @keyframes shimmer { 0%{background-position:0 0;} 100%{background-position:60px 0;} }
-    .ground-layer { position: absolute; bottom: 0; width: 100%; height: 18%; z-index: 8; background: linear-gradient(180deg, #3a6a3a 0%, #2a4a2a 40%, #1a3a1a 100%); }
-    .art-title { position: relative; z-index: 15; text-align: center; margin-bottom: 20px; }
-    .art-title .main-text { font-family: 'Noto Serif SC', 'KaiTi', '楷体', serif; font-size: 2.6rem; font-weight: 900; letter-spacing: 8px; background: linear-gradient(180deg, #fffef5 0%, #fff9c4 15%, #ffe082 30%, #ffcc80 50%, #ffab40 70%, #ff8f00 85%, #e65100 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 25px rgba(255,180,50,1)) drop-shadow(0 0 50px rgba(255,150,30,0.8)); line-height: 1.3; }
-    .art-title .sub-text { font-size: 1rem; letter-spacing: 5px; color: #ffe0b2; margin-top: 8px; text-shadow: 0 0 20px rgba(255,200,100,0.8); }
-    .enter-btn { position: relative; z-index: 15; margin-top: 20px; padding: 15px 55px; background: linear-gradient(135deg, #ff8f00, #e65100); border: none; border-radius: 50px; color: #fff; font-size: 1.15rem; font-weight: 700; letter-spacing: 3px; cursor: pointer; box-shadow: 0 8px 35px rgba(255,100,0,0.6); animation: btnGlow 2s ease-in-out infinite; }
-    @keyframes btnGlow { 0%,100%{box-shadow:0 8px 35px rgba(255,100,0,0.6);} 50%{box-shadow:0 12px 50px rgba(255,80,0,0.9);} }
-    
-    /* 主应用 */
+    .sunshine-sun { position: absolute; top: 8%; right: 15%; width: 70px; height: 70px; background: radial-gradient(circle, #FFF9C4 0%, #FFE082 40%, #FFB300 100%); border-radius: 50%; box-shadow: 0 0 40px rgba(255,200,50,0.8), 0 0 80px rgba(255,180,30,0.4); z-index: 2; animation: sunShine 3s ease-in-out infinite; }
+    @keyframes sunShine { 0%,100%{box-shadow:0 0 40px rgba(255,200,50,0.8);} 50%{box-shadow:0 0 60px rgba(255,220,80,1),0 0 100px rgba(255,200,50,0.6);} }
+    .white-cloud { position: absolute; background: white; border-radius: 50%; opacity: 0.9; }
+    .cloud-group { position: absolute; animation: cloudFloat 15s ease-in-out infinite; }
+    .cloud-group:nth-child(2) { animation-delay: -5s; animation-duration: 18s; }
+    .cloud-group:nth-child(3) { animation-delay: -10s; animation-duration: 12s; top: 20%; left: 10%; }
+    @keyframes cloudFloat { 0%,100%{transform:translateX(0);} 50%{transform:translateX(25px);} }
+    .green-hills { position: absolute; bottom: 30%; width: 100%; height: 25%; z-index: 3; }
+    .hill { position: absolute; bottom: 0; border-radius: 50%; }
+    .hill:nth-child(1) { left: -10%; width: 60%; height: 70%; background: #8BC34A; opacity: 0.6; }
+    .hill:nth-child(2) { left: 30%; width: 55%; height: 90%; background: #7CB342; opacity: 0.7; }
+    .hill:nth-child(3) { right: -5%; width: 45%; height: 60%; background: #9CCC65; opacity: 0.55; }
+    .highway { position: absolute; bottom: 15%; width: 100%; height: 20%; z-index: 4; }
+    .road-surface { position: absolute; bottom: 0; width: 100%; height: 6px; background: #BDBDBD; }
+    .road-dash-line { position: absolute; bottom: 2px; height: 2px; background: #FFD54F; animation: roadDash 2s linear infinite; width: 40px; border-radius: 1px; }
+    @keyframes roadDash { 0%{left:-40px;} 100%{left:100%;} }
+    .meadow { position: absolute; bottom: 0; width: 100%; height: 18%; background: linear-gradient(180deg, #A5D6A7 0%, #66BB6A 50%, #43A047 100%); z-index: 5; }
+    .flower { position: absolute; font-size: 1rem; z-index: 6; animation: sway 2s ease-in-out infinite; }
+    @keyframes sway { 0%,100%{transform:rotate(-5deg);} 50%{transform:rotate(5deg);} }
+    .travel-icons { position: absolute; top: 18%; left: 5%; font-size: 2rem; z-index: 5; opacity: 0.8; animation: floatIcon 3s ease-in-out infinite; }
+    @keyframes floatIcon { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+    .art-title { position: relative; z-index: 10; text-align: center; margin-bottom: 20px; }
+    .art-title .main-text { font-family: 'Noto Serif SC', 'KaiTi', '楷体', serif; font-size: 2.4rem; font-weight: 900; letter-spacing: 6px; background: linear-gradient(180deg, #FF8F00 0%, #F57C00 40%, #E65100 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)) drop-shadow(0 0 20px rgba(255,150,30,0.5)); line-height: 1.3; }
+    .art-title .sub-text { font-size: 0.95rem; letter-spacing: 4px; color: #5D4037; margin-top: 6px; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .enter-btn { position: relative; z-index: 10; margin-top: 15px; padding: 14px 50px; background: linear-gradient(135deg, #FF9800, #F57C00); border: none; border-radius: 50px; color: #fff; font-size: 1.1rem; font-weight: 700; letter-spacing: 3px; cursor: pointer; box-shadow: 0 6px 25px rgba(255,152,0,0.5); animation: btnPulse 2s ease-in-out infinite; }
+    @keyframes btnPulse { 0%,100%{box-shadow:0 6px 25px rgba(255,152,0,0.5);transform:scale(1);} 50%{box-shadow:0 10px 35px rgba(255,152,0,0.8);transform:scale(1.03);} }
+
     .main-app { display: flex; flex-direction: column; height: 100%; }
     .header { background: #fffbf7; padding: 12px 16px 8px; border-bottom: 1px solid #ede4d8; text-align: center; }
     .header h1 { font-size: 1.3rem; font-weight: 600; background: linear-gradient(135deg, #5e4432, #8b6914); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .trip-selector { margin-top: 6px; display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; }
-    .trip-selector select { border: 1px solid #d6c4b0; border-radius: 20px; padding: 6px 12px; background: #fdfaf7; font-size: 0.8rem; color: #4a3729; outline: none; }
-    .nav-tabs { display: flex; justify-content: space-around; background: #fffbf7; padding: 6px 12px; border-bottom: 1px solid #ede4d8; }
+    .trip-selector { margin-top: 4px; display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    .trip-selector select { border: 1px solid #d6c4b0; border-radius: 20px; padding: 5px 12px; background: #fdfaf7; font-size: 0.8rem; color: #4a3729; outline: none; }
+    .nav-tabs { display: flex; justify-content: space-around; background: #fffbf7; padding: 6px 10px; border-bottom: 1px solid #ede4d8; }
     .nav-item { font-size: 0.8rem; font-weight: 500; color: #aa8e7a; padding: 6px 0; cursor: pointer; transition: 0.2s; }
     .nav-item.active { color: #5e4432; font-weight: 600; }
     .nav-item.active::after { content: ''; display: block; width: 20px; height: 3px; background: #c8aa8a; border-radius: 4px; margin: 2px auto 0; }
     .content { flex: 1; overflow-y: auto; padding: 12px; background: #fff; }
-    
+
     .btn { background: #e7dbce; border: none; padding: 8px 14px; border-radius: 40px; font-weight: 500; color: #4a3729; cursor: pointer; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px; }
     .btn-primary { background: #c8aa8a; color: white; font-weight: 600; }
     .btn-outline { background: transparent; border: 1px solid #d6c4b0; }
@@ -66,11 +66,12 @@
     .btn-danger { background: #f8e0e0; color: #c0392b; }
     .btn-success { background: #d4edda; color: #155724; }
     .btn-info { background: #d1ecf1; color: #0c5460; }
+    .btn-share { background: linear-gradient(135deg, #FF9800, #F57C00); color: white; font-weight: 600; }
     .action-row { display: flex; gap: 8px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
     .back-btn { background: none; border: none; color: #8b7355; font-size: 0.85rem; cursor: pointer; padding: 4px 0; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
     .empty-message { color: #b8a28c; text-align: center; padding: 20px; }
     hr { border: 0.5px solid #ede4d8; margin: 10px 0; }
-    
+
     .family-card { background: #faf7f3; border-radius: 16px; padding: 12px; border: 1px solid #e7dbce; margin-bottom: 10px; }
     .family-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
     .family-name-input { border: none; background: transparent; font-weight: 600; font-size: 1rem; color: #4a3729; width: 100px; border-bottom: 1px dashed #c8b6a4; padding: 2px; outline: none; }
@@ -79,137 +80,509 @@
     .member-name-input { border: 1px solid #e0d3c2; border-radius: 12px; padding: 4px 8px; font-size: 0.8rem; background: white; outline: none; flex: 1; }
     .sort-btns { display: flex; flex-direction: column; gap: 1px; }
     .sort-btn { background: none; border: none; font-size: 0.7rem; cursor: pointer; color: #8b7355; }
-    .trip-list-card { background: #faf7f3; border-radius: 16px; padding: 14px; margin-bottom: 10px; border: 1px solid #e7dbce; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .trip-list-card { background: #faf7f3; border-radius: 16px; padding: 14px; margin-bottom: 10px; border: 1px solid #e7dbce; display: flex; align-items: center; }
     .trip-list-card h3 { color: #4a3729; font-size: 0.95rem; }
     .trip-meta { color: #8b7355; font-size: 0.75rem; }
-    .arrow { font-size: 1.1rem; color: #b2977c; }
-    
+
     .expense-form { display: flex; flex-direction: column; gap: 10px; }
     .input-group { display: flex; flex-direction: column; gap: 3px; }
     .input-group label { font-size: 0.75rem; font-weight: 600; color: #7b6452; margin-left: 6px; }
     .input-field { border: 1px solid #e0d3c2; border-radius: 16px; padding: 10px 14px; font-size: 0.9rem; background: #fdfaf7; outline: none; width: 100%; }
-    .checkbox-list { display: flex; flex-wrap: wrap; gap: 6px; background: #faf7f3; padding: 10px; border-radius: 16px; max-height: 160px; overflow-y: auto; }
+    .checkbox-list { display: flex; flex-wrap: wrap; gap: 6px; background: #faf7f3; padding: 10px; border-radius: 16px; max-height: 200px; overflow-y: auto; }
     .person-checkbox { display: flex; align-items: center; gap: 4px; background: white; padding: 4px 10px; border-radius: 20px; border: 1px solid #e4d4c0; font-size: 0.75rem; cursor: pointer; }
-    
+
     .trip-overview-card { background: linear-gradient(135deg, #faf7f3 0%, #f0e8dc 100%); border-radius: 20px; padding: 16px; margin-bottom: 10px; cursor: pointer; border: 1px solid #e4d4c0; }
     .trip-total { font-size: 1.3rem; font-weight: 700; color: #5e4432; }
     .summary-card { background: #faf7f3; border-radius: 20px; padding: 14px; margin-bottom: 10px; }
     .balance-row { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 4px 0; border-bottom: 1px dashed #e0d3c2; }
     .total-amount { font-weight: 700; color: #b38b6b; }
-    
+
     .expense-list-item { background: #faf7f3; border-radius: 14px; padding: 10px; margin-bottom: 6px; border: 1px solid #e7dbce; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
     .expense-list-item .expense-info strong { color: #4a3729; font-size: 0.9rem; }
     .expense-list-item .expense-meta { color: #8b7355; font-size: 0.7rem; }
-    
+
     .share-img-container { background: white; padding: 16px; border-radius: 16px; }
     .detail-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
     .detail-table th { background: #faf7f3; padding: 8px 6px; border-bottom: 2px solid #e0d3c2; text-align: left; color: #5e4432; }
     .detail-table td { padding: 6px; border-bottom: 1px solid #f0e8dc; }
+
     .new-trip-btn { width: 100%; margin-top: 8px; background: #f0e8dc; border: 2px dashed #c8b6a4; color: #8b7355; font-weight: 500; }
     .settings-card { background: #faf7f3; border-radius: 16px; padding: 14px; border: 1px solid #e7dbce; margin-bottom: 10px; }
     .settings-card h3 { color: #4a3729; margin-bottom: 8px; font-size: 0.95rem; }
     .settings-card p { color: #8b7355; font-size: 0.75rem; margin-bottom: 8px; }
+
+    .split-fee-card { background: #faf7f3; border-radius: 16px; padding: 12px; margin-bottom: 8px; border: 1px solid #e7dbce; }
+    .fee-header { font-weight: 600; color: #5e4432; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .subtotal-text { color: #8b7355; font-size: 0.75rem; margin-top: 4px; }
+    .total-text { text-align: center; font-weight: 700; color: #5e4432; font-size: 1rem; }
+    .hint-text { color: #b2977c; font-size: 0.65rem; margin-top: 2px; font-style: italic; }
+    .select-btns { display: flex; gap: 4px; margin-bottom: 4px; }
+    .select-btns .btn { padding: 2px 8px; font-size: 0.65rem; border-radius: 12px; }
+
+    .share-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 300; display: flex; align-items: center; justify-content: center; }
+    .share-modal { background: white; border-radius: 24px; padding: 24px; width: 85%; max-width: 360px; text-align: center; }
+    .share-modal h3 { color: #5e4432; margin-bottom: 20px; font-size: 1.1rem; }
+    .share-modal .share-option { display: flex; align-items: center; gap: 12px; padding: 14px 18px; margin: 8px 0; border-radius: 16px; cursor: pointer; transition: 0.2s; font-size: 0.95rem; font-weight: 500; }
+    .share-modal .share-option:hover { background: #f5f0eb; }
+    .share-modal .share-option .option-icon { font-size: 1.5rem; }
+    .share-modal .share-option .option-text { flex: 1; text-align: left; color: #4a3729; }
+    .share-modal .share-option .option-arrow { color: #b2977c; }
+    .share-modal .cancel-btn { margin-top: 12px; padding: 10px; width: 100%; background: #f0e8dc; border: none; border-radius: 40px; color: #8b7355; font-size: 0.9rem; cursor: pointer; }
   </style>
 </head>
 <body>
 <div class="app-container" id="appContainer">
   <div class="splash-screen" id="splashScreen">
-    <div class="nature-sky"></div>
-    <div class="morning-sun"></div>
-    <div class="lake-reflection"></div>
-    <div class="cloud-group-nature" style="top:12%;left:5%;"><div class="nature-cloud" style="width:50px;height:28px;"></div><div class="nature-cloud" style="width:40px;height:24px;top:-10px;left:15px;"></div><div class="nature-cloud" style="width:55px;height:26px;top:4px;left:30px;"></div></div>
-    <div class="cloud-group-nature" style="top:8%;right:8%;"><div class="nature-cloud" style="width:60px;height:30px;"></div><div class="nature-cloud" style="width:45px;height:26px;top:-12px;left:18px;"></div><div class="nature-cloud" style="width:40px;height:22px;top:5px;left:40px;"></div></div>
-    <div class="mountain-layer"><div class="nature-mountain"></div><div class="nature-mountain"></div><div class="nature-mountain"></div></div>
-    <div class="forest-layer"></div>
-    <div class="lake-surface"></div>
-    <div class="lake-shimmer"></div>
-    <div class="ground-layer"></div>
+    <div class="sunshine-sun"></div>
+    <div class="cloud-group" style="top:10%;left:8%;"><div class="white-cloud" style="width:55px;height:30px;"></div><div class="white-cloud" style="width:40px;height:25px;top:-10px;left:15px;"></div><div class="white-cloud" style="width:50px;height:28px;top:3px;left:30px;"></div></div>
+    <div class="cloud-group" style="top:6%;right:10%;"><div class="white-cloud" style="width:50px;height:28px;"></div><div class="white-cloud" style="width:35px;height:22px;top:-8px;left:12px;"></div><div class="white-cloud" style="width:45px;height:26px;top:2px;left:28px;"></div></div>
+    <div class="cloud-group" style="top:22%;left:30%;"><div class="white-cloud" style="width:40px;height:22px;"></div><div class="white-cloud" style="width:30px;height:18px;top:-6px;left:10px;"></div></div>
+    <div class="green-hills"><div class="hill"></div><div class="hill"></div><div class="hill"></div></div>
+    <div class="highway"><div class="road-surface"></div><div class="road-dash-line"></div><div class="road-dash-line" style="animation-delay:1s;"></div></div>
+    <div class="meadow"></div>
+    <div class="flower" style="bottom:8%;left:10%;">🌸</div><div class="flower" style="bottom:5%;left:25%;animation-delay:0.5s;">🌼</div><div class="flower" style="bottom:10%;left:45%;animation-delay:1s;">🌻</div><div class="flower" style="bottom:6%;left:65%;animation-delay:0.3s;">🌸</div><div class="flower" style="bottom:9%;left:80%;animation-delay:0.8s;">🌼</div><div class="flower" style="bottom:4%;left:90%;animation-delay:1.2s;">🌺</div>
+    <div class="travel-icons" style="top:16%;left:5%;">🏕️</div><div class="travel-icons" style="top:14%;right:8%;animation-delay:0.5s;">🧳</div>
     <div class="art-title"><div class="main-text">自驾乐游天下</div><div class="sub-text">✦ 驰骋山海 · 快乐分摊 ✦</div></div>
     <button class="enter-btn" onclick="enterApp()">🚗 出发记账</button>
   </div>
+
   <div class="main-app" id="mainApp" style="display:none;">
     <div class="header"><h1>🚙 自驾乐游天下</h1><div class="trip-selector"><select id="tripSelect" onchange="switchTrip(this.value)"><option value="">选择出游活动</option></select><button class="btn btn-small btn-outline" onclick="createNewTrip()">➕ 新建</button></div></div>
     <div class="nav-tabs"><div class="nav-item active" data-tab="setup">👨‍👩‍👧‍👦 家庭</div><div class="nav-item" data-tab="expense">🧾 记账</div><div class="nav-item" data-tab="summary">📊 明细</div><div class="nav-item" data-tab="settings">⚙️ 设置</div></div>
     <div class="content" id="contentArea"></div>
   </div>
 </div>
-<script>
-(function(){
-  var STORAGE_KEY='drive_trip_final';
-  var appData={trips:{},activeTripId:null,globalFamilies:[]};
-  var setupDetailTripId=null,summaryDetailTripId=null,editingExpenseId=null,currentTab='setup';
 
-  function getDefaultFamilies(){
+<script>
+(function() {
+  var manifest = { name: '自驾乐游天下', short_name: '自驾记账', start_url: '.', display: 'standalone', background_color: '#87CEEB', theme_color: '#FF9800', icons: [{ src: "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#87CEEB"/><stop offset="100%" style="stop-color:#43A047"/></linearGradient></defs><rect width="512" height="512" rx="100" fill="url(#bg)"/><circle cx="380" cy="120" r="60" fill="#FFD54F" opacity="0.9"/><path d="M0 350 L100 280 L200 310 L300 220 L400 280 L512 300 L512 512 L0 512Z" fill="#66BB6A" opacity="0.8"/><path d="M0 420 L120 370 L220 400 L320 330 L420 380 L512 370 L512 512 L0 512Z" fill="#43A047"/><text x="256" y="300" text-anchor="middle" font-size="130" font-weight="900" fill="#FFD54F">🚙</text></svg>'), sizes: '512x512', type: 'image/svg+xml' }] };
+  var blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+  var link = document.createElement('link'); link.rel = 'manifest'; link.href = URL.createObjectURL(blob); document.head.appendChild(link);
+})();
+
+(function() {
+  var STORAGE_KEY = 'drive_trip_v14';
+  var appData = { trips: {}, activeTripId: null, globalFamilies: [] };
+  var setupDetailTripId = null, summaryDetailTripId = null, editingExpenseId = null, currentTab = 'setup';
+
+  function getDefaultFamilies() {
     return [
-      {id:'f1',name:'李阳家',members:[
-        {id:'m_f1_0',type:'adult',name:'李阳'},{id:'m_f1_1',type:'adult',name:'王婷'},
-        {id:'m_f1_2',type:'child',name:'李芷熠'},{id:'m_f1_3',type:'child',name:'小橙子'}
-      ]},
-      {id:'f2',name:'张峰伟家',members:[
-        {id:'m_f2_0',type:'adult',name:'张峰伟'},{id:'m_f2_1',type:'adult',name:'龙佳'},
-        {id:'m_f2_2',type:'child',name:'然然'},{id:'m_f2_3',type:'child',name:'贝贝'}
-      ]},
-      {id:'f3',name:'王维家',members:[
-        {id:'m_f3_0',type:'adult',name:'王维'},{id:'m_f3_1',type:'adult',name:'林亚军'},
-        {id:'m_f3_2',type:'child',name:'子昕'},{id:'m_f3_3',type:'child',name:'石头'}
-      ]}
+      { id: 'f1', name: '李阳家', members: [{id:'m_f1_0',type:'adult',name:'李阳'},{id:'m_f1_1',type:'adult',name:'王婷'},{id:'m_f1_2',type:'child',name:'李芷熠'},{id:'m_f1_1782109634669',type:'child',name:'小橙子'}] },
+      { id: 'f2', name: '张峰伟家', members: [{id:'m_f2_0',type:'adult',name:'张峰伟'},{id:'m_f2_1',type:'adult',name:'龙佳'},{id:'m_f2_2',type:'child',name:'然然'},{id:'m_f2_1782109671493',type:'child',name:'贝贝'}] },
+      { id: 'f3', name: '王维家', members: [{id:'m_f3_0',type:'adult',name:'王维'},{id:'m_f3_1',type:'adult',name:'林亚军'},{id:'m_f3_1782109683069',type:'child',name:'子昕'},{id:'m_f3_1782109687422',type:'child',name:'石头'}] }
     ];
   }
 
-  function esc(t){return String(t).replace(/[&<>]/g,function(m){return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[m];});}
-  function load(){var s=localStorage.getItem(STORAGE_KEY);if(s){try{appData=JSON.parse(s);}catch(e){appData={trips:{},activeTripId:null,globalFamilies:getDefaultFamilies()};}}else{appData={trips:{},activeTripId:null,globalFamilies:getDefaultFamilies()};}if(!appData.trips)appData.trips={};if(!appData.globalFamilies||appData.globalFamilies.length===0)appData.globalFamilies=getDefaultFamilies();updateTripSelect();}
-  function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(appData));}
-  function getTrip(){return appData.activeTripId&&appData.trips[appData.activeTripId]?appData.trips[appData.activeTripId]:null;}
-  function updateTripSelect(){var sel=document.getElementById('tripSelect');if(!sel)return;sel.innerHTML='<option value="">选择出游活动</option>';Object.keys(appData.trips).forEach(function(id){sel.innerHTML+='<option value="'+id+'"'+(appData.activeTripId===id?' selected':'')+'>'+esc(appData.trips[id].name)+'</option>';});}
-  function getCurrentDateTime(){var n=new Date();return new Date(n.getTime()-n.getTimezoneOffset()*60000).toISOString().slice(0,16);}
-  function formatDateFull(d){if(!d)return'';var dt=new Date(d);return dt.getFullYear()+'/'+(dt.getMonth()+1)+'/'+dt.getDate()+' '+dt.getHours()+':'+String(dt.getMinutes()).padStart(2,'0');}
+  function getPresetTripData() {
+    return {
+      "trip_1782115696058": {
+        "name": "2026年6月18日-21日端午自驾游",
+        "families": [
+          {"id":"f1","name":"李阳家","members":[{"id":"m_f1_0","type":"adult","name":"李阳"},{"id":"m_f1_1","type":"adult","name":"王婷"},{"id":"m_f1_1782117721596","type":"adult","name":"李爸爸"},{"id":"m_f1_1782117728376","type":"adult","name":"阳妈妈"},{"id":"m_f1_1782117732736","type":"adult","name":"李妈妈"},{"id":"m_f1_2","type":"child","name":"李芷熠"},{"id":"m_f1_3","type":"child","name":"小橙子"}]},
+          {"id":"f2","name":"张峰伟家","members":[{"id":"m_f2_0","type":"adult","name":"张峰伟"},{"id":"m_f2_1","type":"adult","name":"龙佳"},{"id":"m_f2_1782117760535","type":"adult","name":"张妈妈"},{"id":"m_f2_1782117944919","type":"adult","name":"小龙"},{"id":"m_f2_2","type":"child","name":"然然"},{"id":"m_f2_3","type":"child","name":"贝贝"}]},
+          {"id":"f3","name":"王维家","members":[{"id":"m_f3_0","type":"adult","name":"王维"},{"id":"m_f3_1","type":"adult","name":"林亚军"},{"id":"m_f3_2","type":"child","name":"子昕"},{"id":"m_f3_3","type":"child","name":"石头"}]},
+          {"id":"f1782115733771","name":"姚金康家","members":[{"id":"m_f1782115733771_0","type":"adult","name":"姚金康"},{"id":"m_f1782115733771_1","type":"adult","name":"肖静"},{"id":"m_f1782115733771_1782117848813","type":"adult","name":"肖静妈妈"},{"id":"m_f1782115733771_1782116229882","type":"child","name":"筱语"}]}
+        ],
+        "expenses": [
+          {"id":"e1782118086880","location":"汉中博物馆","description":"博物馆讲解","amount":100,"paidByFamilyId":"f2","sharedMemberIds":["m_f1_0","m_f1_1","m_f1_1782117721596","m_f1_1782117728376","m_f1_1782117732736","m_f2_0","m_f2_1","m_f2_1782117760535","m_f2_1782117944919","m_f3_0","m_f3_1","m_f1782115733771_0","m_f1782115733771_1","m_f1782115733771_1782117848813"],"dateTime":"2026-06-19T01:30:00.000Z"},
+          {"id":"e1782118285275","location":"兴汉胜境","description":"兴汉胜境门票+汉颂演出票","amount":2000,"paidByFamilyId":"f2","sharedMemberIds":["m_f1_0","m_f1_1","m_f1_1782117721596","m_f1_1782117728376","m_f1_1782117732736","m_f1_2","m_f2_0","m_f2_1","m_f2_1782117760535","m_f2_1782117944919","m_f2_2","m_f3_0","m_f3_1","m_f3_2","m_f1782115733771_0","m_f1782115733771_1","m_f1782115733771_1782117848813"],"dateTime":"2026-06-19T01:30:00.000Z"},
+          {"id":"e1782118455331","location":"文婆婆中餐","description":"午餐","amount":471,"paidByFamilyId":"f2","sharedMemberIds":["m_f1_0","m_f1_1","m_f1_1782117721596","m_f1_1782117728376","m_f1_1782117732736","m_f2_0","m_f2_1","m_f2_1782117760535","m_f2_1782117944919","m_f3_0","m_f3_1","m_f1782115733771_0","m_f1782115733771_1","m_f1782115733771_1782117848813"],"dateTime":"2026-06-19T04:30:00.000Z"},
+          {"id":"e1782118612434","location":"麻摆摆鱼","description":"晚餐","amount":1399,"paidByFamilyId":"f2","sharedMemberIds":["m_f1_0","m_f1_1","m_f1_1782117721596","m_f1_1782117728376","m_f1_1782117732736","m_f2_0","m_f2_1","m_f2_1782117760535","m_f2_1782117944919","m_f3_0","m_f3_1","m_f1782115733771_0","m_f1782115733771_1","m_f1782115733771_1782117848813"],"dateTime":"2026-06-19T09:45:00.000Z"},
+          {"id":"e1782118962003","location":"盛泰国奚SPA","description":"一次性按摩服","amount":160,"paidByFamilyId":"f2","sharedMemberIds":["m_f1_0","m_f1_1","m_f2_0","m_f2_1","m_f3_0","m_f3_1","m_f1782115733771_0","m_f1782115733771_1"],"dateTime":"2026-06-20T12:00:00.000Z"},
+          {"id":"e1782122447079","location":"李姑婆自助牛肉火锅","description":"晚餐","amount":1208,"expenseType":"split","adultPrice":88,"childPrice":48,"adultMemberIds":["m_f1_0","m_f1_1","m_f2_0","m_f2_1","m_f2_1782117760535","m_f2_1782117944919","m_f3_0","m_f3_1","m_f1782115733771_0","m_f1782115733771_1","m_f1782115733771_1782117848813"],"childMemberIds":["m_f1_2","m_f2_2","m_f2_3","m_f3_2","m_f3_3"],"paidByFamilyId":"f2","sharedMemberIds":["m_f1_0","m_f1_1","m_f1_1782117721596","m_f1_1782117728376","m_f1_1782117732736","m_f1_2","m_f1_3","m_f2_0","m_f2_1","m_f2_1782117760535","m_f2_1782117944919","m_f2_2","m_f2_3","m_f3_0","m_f3_1","m_f3_2","m_f3_3","m_f1782115733771_0","m_f1782115733771_1","m_f1782115733771_1782117848813","m_f1782115733771_1782116229882"],"dateTime":"2026-06-20T10:00:00.000Z","familyShares":{"f1":224,"f2":448,"f3":272,"f1782115733771":264},"sharedFamilyIds":["f1","f2","f3","f1782115733771"]}
+        ]
+      }
+    };
+  }
 
-  window.enterApp=function(){document.getElementById('splashScreen').classList.add('hidden');setTimeout(function(){document.getElementById('splashScreen').style.display='none';document.getElementById('mainApp').style.display='flex';render();},800);};
-  window.switchTrip=function(id){appData.activeTripId=id||null;setupDetailTripId=null;summaryDetailTripId=null;editingExpenseId=null;save();render();};
-  window.createNewTrip=function(){var name=prompt('出游名称：','自驾之旅');if(!name||!name.trim())return;var id='trip_'+Date.now();appData.trips[id]={name:name.trim(),families:JSON.parse(JSON.stringify(appData.globalFamilies)),expenses:[]};appData.activeTripId=id;save();updateTripSelect();render();};
+  function esc(t) { return String(t).replace(/[&<>]/g, function(m) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]; }); }
 
-  document.querySelectorAll('.nav-item').forEach(function(item){item.addEventListener('click',function(e){currentTab=e.target.dataset.tab;setupDetailTripId=null;summaryDetailTripId=null;editingExpenseId=null;document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});e.target.classList.add('active');render();});});
+  function load() {
+    var s = localStorage.getItem(STORAGE_KEY);
+    if (s) { try { appData = JSON.parse(s); } catch(e) { initDefault(); } } else { initDefault(); }
+    if (!appData.trips) appData.trips = {};
+    if (!appData.globalFamilies || !appData.globalFamilies.length) appData.globalFamilies = getDefaultFamilies();
+    var presetTrips = getPresetTripData();
+    Object.keys(presetTrips).forEach(function(key) { if (!appData.trips[key]) appData.trips[key] = presetTrips[key]; });
+    if (!appData.activeTripId || !appData.trips[appData.activeTripId]) appData.activeTripId = 'trip_1782115696058';
+    save(); updateTripSelect();
+  }
 
-  function render(){if(currentTab==='setup')renderSetup();else if(currentTab==='expense')renderExpense();else if(currentTab==='summary')renderSummary();else if(currentTab==='settings')renderSettings();}
+  function initDefault() { appData = { trips: getPresetTripData(), activeTripId: 'trip_1782115696058', globalFamilies: getDefaultFamilies() }; }
+  function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
+  function getTrip() { return appData.activeTripId && appData.trips[appData.activeTripId] || null; }
+  function updateTripSelect() { var sel = document.getElementById('tripSelect'); if (!sel) return; sel.innerHTML = '<option value="">选择出游活动</option>'; Object.keys(appData.trips).forEach(function(id) { sel.innerHTML += '<option value="' + id + '"' + (appData.activeTripId === id ? ' selected' : '') + '>' + esc(appData.trips[id].name) + '</option>'; }); }
+  function getCurrentDateTime() { var n = new Date(); return new Date(n.getTime() - n.getTimezoneOffset() * 60000).toISOString().slice(0, 16); }
+  function formatDateFull(d) { if (!d) return ''; var dt = new Date(d); return dt.getFullYear() + '/' + (dt.getMonth() + 1) + '/' + dt.getDate() + ' ' + dt.getHours() + ':' + String(dt.getMinutes()).padStart(2, '0'); }
 
-  // 家庭设置
-  function renderSetup(){var area=document.getElementById('contentArea');if(setupDetailTripId){renderSetupDetail(setupDetailTripId);return;}var h='<div><h3 style="color:#5e4432;">👨‍👩‍👧‍👦 出游活动</h3><p style="color:#8b7355;font-size:0.8rem;">点击进入家庭明细</p>';var ids=Object.keys(appData.trips);if(!ids.length)h+='<div class="empty-message">📌 还没有出游活动</div>';else ids.forEach(function(id){var t=appData.trips[id];h+='<div class="trip-list-card" onclick="openSetupDetail(\''+id+'\')"><div><h3>🏷️ '+esc(t.name)+'</h3><div class="trip-meta">'+t.families.length+'家庭·'+t.families.reduce(function(s,f){return s+f.members.length;},0)+'人</div></div><span class="arrow">›</span></div>';});h+='<button class="btn new-trip-btn" onclick="createNewTrip()">➕ 创建新出游</button></div>';area.innerHTML=h;}
-  window.openSetupDetail=function(id){setupDetailTripId=id;appData.activeTripId=id;updateTripSelect();save();renderSetupDetail(id);};
-  function renderSetupDetail(id){var area=document.getElementById('contentArea');var trip=appData.trips[id];if(!trip){setupDetailTripId=null;renderSetup();return;}var h='<div><button class="back-btn" onclick="setupDetailTripId=null;renderSetup();">← 返回</button><h3>'+esc(trip.name)+' - 家庭明细</h3><div class="family-setup">';trip.families.forEach(function(f){h+='<div class="family-card"><div class="family-header"><input class="family-name-input" value="'+esc(f.name)+'" onchange="updateFamilyName(\''+f.id+'\',this.value)"><button class="btn-outline btn-small btn-danger" onclick="removeFamily(\''+f.id+'\')">移除</button></div><div class="member-list">';f.members.forEach(function(m){h+='<div class="member-row"><span class="member-tag">'+(m.type==='adult'?'👤大人':'👶小孩')+'</span><input class="member-name-input" value="'+esc(m.name)+'" onchange="updateMemberName(\''+f.id+'\',\''+m.id+'\',this.value)"><div class="sort-btns"><button class="sort-btn" onclick="moveMember(\''+f.id+'\',\''+m.id+'\',-1)">▲</button><button class="sort-btn" onclick="moveMember(\''+f.id+'\',\''+m.id+'\',1)">▼</button></div><button class="btn-outline btn-small" onclick="removeMember(\''+f.id+'\',\''+m.id+'\')">✕</button></div>';});h+='</div><div style="display:flex;gap:6px;margin-top:6px;"><button class="btn btn-small" onclick="addMember(\''+f.id+'\',\'adult\')">+大人</button><button class="btn btn-small" onclick="addMember(\''+f.id+'\',\'child\')">+小孩</button></div></div>';});h+='<div class="action-row"><button class="btn btn-primary" onclick="addFamilyToTrip(\''+id+'\')">➕ 添加家庭</button><button class="btn" onclick="saveTripFamilies()">💾 保存排序</button></div></div></div>';area.innerHTML=h;}
-  window.moveMember=function(fid,mid,dir){var trip=getTrip();if(!trip)return;var fam=trip.families.find(function(f){return f.id===fid;});if(!fam)return;var idx=fam.members.findIndex(function(m){return m.id===mid;});if(idx===-1||(dir===-1&&idx===0)||(dir===1&&idx===fam.members.length-1))return;var tmp=fam.members[idx];fam.members[idx]=fam.members[idx+dir];fam.members[idx+dir]=tmp;save();renderSetupDetail(appData.activeTripId);};
-  window.saveTripFamilies=function(){save();alert('排序已保存');};
-  window.addFamilyToTrip=function(id){var trip=appData.trips[id];if(!trip)return;var name=prompt('新家庭名称：','新家庭');if(!name||!name.trim())return;var nid='f'+Date.now();var nf={id:nid,name:name.trim(),members:[{id:'m_'+nid+'_0',type:'adult',name:'成员1'},{id:'m_'+nid+'_1',type:'adult',name:'成员2'}]};trip.families.push(nf);appData.globalFamilies.push(JSON.parse(JSON.stringify(nf)));save();renderSetupDetail(id);};
-  window.removeFamily=function(fid){var trip=getTrip();if(!trip||trip.families.length<=1){alert('至少保留一个家庭');return;}trip.families=trip.families.filter(function(f){return f.id!==fid;});appData.globalFamilies=appData.globalFamilies.filter(function(f){return f.id!==fid;});trip.expenses=trip.expenses.filter(function(e){return e.paidByFamilyId!==fid&&!e.sharedMemberIds.some(function(mid){return mid.indexOf('m_'+fid+'_')===0;});});save();renderSetupDetail(appData.activeTripId);};
-  window.addMember=function(fid,type){var trip=getTrip();if(!trip)return;var fam=trip.families.find(function(f){return f.id===fid;});if(!fam)return;var name=prompt('新'+(type==='adult'?'大人':'小孩')+'姓名：',type==='adult'?'新大人':'新小孩');if(!name||!name.trim())return;fam.members.push({id:'m_'+fid+'_'+Date.now(),type:type,name:name.trim()});save();renderSetupDetail(appData.activeTripId);};
-  window.removeMember=function(fid,mid){var trip=getTrip();if(!trip)return;var fam=trip.families.find(function(f){return f.id===fid;});if(!fam||fam.members.length<=1){alert('至少一人');return;}fam.members=fam.members.filter(function(m){return m.id!==mid;});trip.expenses=trip.expenses.filter(function(e){return !e.sharedMemberIds.includes(mid);});save();renderSetupDetail(appData.activeTripId);};
-  window.updateFamilyName=function(fid,name){if(!name.trim())return;var trip=getTrip();if(!trip)return;var f=trip.families.find(function(x){return x.id===fid;});if(f)f.name=name.trim();save();};
-  window.updateMemberName=function(fid,mid,name){if(!name.trim())return;var trip=getTrip();if(!trip)return;var fam=trip.families.find(function(x){return x.id===fid;});if(!fam)return;var m=fam.members.find(function(x){return x.id===mid;});if(m)m.name=name.trim();save();};
+  window.enterApp = function() { document.getElementById('splashScreen').classList.add('hidden'); setTimeout(function() { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('mainApp').style.display = 'flex'; render(); }, 800); };
+  window.switchTrip = function(id) { appData.activeTripId = id || null; setupDetailTripId = null; summaryDetailTripId = null; editingExpenseId = null; save(); render(); };
+  window.createNewTrip = function() { var name = prompt('出游名称：', '自驾之旅'); if (!name || !name.trim()) return; var id = 'trip_' + Date.now(); appData.trips[id] = { name: name.trim(), families: JSON.parse(JSON.stringify(appData.globalFamilies)), expenses: [] }; appData.activeTripId = id; save(); updateTripSelect(); render(); };
 
-  // 记账
-  function renderExpense(){var area=document.getElementById('contentArea');var trip=getTrip();if(!trip){area.innerHTML='<div class="empty-message">📌 请先选择出游活动</div>';return;}var members=[];trip.families.forEach(function(f){f.members.forEach(function(m){members.push({id:m.id,type:m.type,name:m.name,familyName:f.name,familyId:f.id});});});var h='<div class="expense-form"><h3>🧾 '+esc(trip.name)+' - 记一笔</h3>';h+='<div class="input-group"><label>📍 消费地点</label><input class="input-field" id="expLocation" placeholder="海边餐厅"></div>';h+='<div class="input-group"><label>📝 描述</label><input class="input-field" id="expDesc" placeholder="午餐"></div>';h+='<div class="input-group"><label>💰 金额</label><input class="input-field" type="number" id="expAmount" placeholder="0.00" step="0.01"></div>';h+='<div class="input-group"><label>📅 时间</label><input class="input-field" type="datetime-local" id="expDateTime" value="'+getCurrentDateTime()+'"></div>';h+='<div class="input-group"><label>👤 付款家庭</label><select class="input-field" id="expPayer">'+trip.families.map(function(f){return'<option value="'+f.id+'">'+esc(f.name)+'</option>';}).join('')+'</select></div>';h+='<div class="input-group"><label>✅ 均摊人员</label><div class="checkbox-list" id="personCheckboxList">'+members.map(function(m){return'<label class="person-checkbox"><input type="checkbox" value="'+m.id+'" checked> '+esc(m.familyName)+'·'+esc(m.name)+'</label>';}).join('')+'</div></div>';h+='<button class="btn btn-primary" style="width:100%;" onclick="addExpense()">➕ 记录费用</button></div>';if(trip.expenses.length>0){h+='<hr><div style="font-weight:500;">📋 最近记录</div>';trip.expenses.slice().reverse().slice(0,5).forEach(function(e){var p=trip.families.find(function(f){return f.id===e.paidByFamilyId;});h+='<div style="background:#faf7f3;border-radius:12px;padding:8px;margin:6px 0;font-size:0.8rem;"><strong>'+esc(e.description)+'</strong> ¥'+e.amount.toFixed(2)+' <span style="color:#8b7355;">('+(p?p.name:'未知')+')</span><div style="color:#aa8e7a;font-size:0.7rem;">'+e.sharedMemberIds.length+'人分摊 · '+formatDateFull(e.dateTime)+'</div></div>';});}area.innerHTML=h;}
-  window.addExpense=function(){var trip=getTrip();if(!trip)return;var loc=document.getElementById('expLocation').value.trim();var desc=document.getElementById('expDesc').value.trim();var amt=parseFloat(document.getElementById('expAmount').value);var payer=document.getElementById('expPayer').value;var dt=document.getElementById('expDateTime').value;var cbs=document.querySelectorAll('#personCheckboxList input:checked');if(!desc||isNaN(amt)||amt<=0||!payer||!dt||cbs.length===0)return alert('请填写完整');trip.expenses.push({id:'e'+Date.now(),location:loc,description:desc,amount:amt,paidByFamilyId:payer,sharedMemberIds:Array.from(cbs).map(function(c){return c.value;}),dateTime:new Date(dt).toISOString()});save();renderExpense();};
+  document.querySelectorAll('.nav-item').forEach(function(item) { item.addEventListener('click', function(e) { currentTab = e.target.dataset.tab; setupDetailTripId = null; summaryDetailTripId = null; editingExpenseId = null; document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); }); e.target.classList.add('active'); render(); }); });
 
-  // 费用明细
-  function renderSummary(){var area=document.getElementById('contentArea');if(editingExpenseId){renderExpenseEdit(editingExpenseId);return;}if(summaryDetailTripId){renderTripDetail(summaryDetailTripId);return;}var h='<div><h3>📊 出游总览</h3><p style="color:#8b7355;font-size:0.8rem;">点击查看各家费用</p>';var ids=Object.keys(appData.trips);if(!ids.length)h+='<div class="empty-message">✨ 还没有出游活动</div>';else ids.forEach(function(id){var t=appData.trips[id];h+='<div class="trip-overview-card" onclick="showTripDetail(\''+id+'\')"><h3>🏷️ '+esc(t.name)+'</h3><div class="trip-total">¥'+t.expenses.reduce(function(s,e){return s+e.amount;},0).toFixed(2)+'</div><span style="color:#8b7355;">'+t.expenses.length+'笔·'+t.families.length+'家庭</span></div>';});h+='</div>';area.innerHTML=h;}
-  window.showTripDetail=function(id){summaryDetailTripId=id;appData.activeTripId=id;editingExpenseId=null;updateTripSelect();save();renderTripDetail(id);};
-  function renderTripDetail(id){var area=document.getElementById('contentArea');var trip=appData.trips[id];if(!trip){summaryDetailTripId=null;renderSummary();return;}var fb={};trip.families.forEach(function(f){fb[f.id]={name:f.name,paid:0,shouldPay:0};});trip.expenses.forEach(function(e){if(fb[e.paidByFamilyId])fb[e.paidByFamilyId].paid+=e.amount;var per=e.sharedMemberIds.length?e.amount/e.sharedMemberIds.length:0;var cnt={};e.sharedMemberIds.forEach(function(mid){var fid=mid.split('_')[1];cnt[fid]=(cnt[fid]||0)+1;});Object.keys(cnt).forEach(function(fid){if(fb[fid])fb[fid].shouldPay+=per*cnt[fid];});});var h='<div><button class="back-btn" onclick="summaryDetailTripId=null;renderSummary();">← 返回</button><h3>'+esc(trip.name)+'</h3>';if(!trip.expenses.length)h+='<div class="empty-message">✨ 还没有费用记录</div>';else{var total=trip.expenses.reduce(function(s,e){return s+e.amount;},0);h+='<div class="trip-total">总支出: ¥'+total.toFixed(2)+'</div>';Object.values(fb).forEach(function(b){var d=b.paid-b.shouldPay;h+='<div class="summary-card"><h4>'+esc(b.name)+'</h4><div class="balance-row"><span>已支付</span><span>¥'+b.paid.toFixed(2)+'</span></div><div class="balance-row"><span>应分摊</span><span>¥'+b.shouldPay.toFixed(2)+'</span></div><div class="balance-row"><strong>'+(d>=0?'应收':'应付')+'</strong><strong class="total-amount">¥'+Math.abs(d).toFixed(2)+'</strong></div></div>';});h+='<div class="action-row"><button class="btn btn-primary" style="flex:1;" onclick="showDetailedExpenses(\''+id+'\')">📋 查看明细</button><button class="btn btn-success" style="flex:1;margin-left:6px;" onclick="shareSummary(\''+id+'\')">📤 分享汇总</button></div>';}h+='</div>';area.innerHTML=h;}
-  window.showDetailedExpenses=function(id){var area=document.getElementById('contentArea');var trip=appData.trips[id];if(!trip)return;var h='<div><button class="back-btn" onclick="showTripDetail(\''+id+'\')">← 返回</button><h3>📋 详细清单</h3>';if(!trip.expenses.length)h+='<div class="empty-message">暂无记录</div>';else{h+='<div id="shareArea" class="share-img-container"><h4 style="text-align:center;">'+esc(trip.name)+' - 费用明细</h4><table class="detail-table"><tr><th>时间</th><th>地点</th><th>描述</th><th>金额</th><th>付款方</th><th>均摊人</th></tr>';trip.expenses.forEach(function(e){var p=trip.families.find(function(f){return f.id===e.paidByFamilyId;});var sn=e.sharedMemberIds.map(function(mid){for(var i=0;i<trip.families.length;i++){var m=trip.families[i].members.find(function(x){return x.id===mid;});if(m)return trip.families[i].name+'·'+m.name;}return mid;}).join('、');h+='<tr><td>'+formatDateFull(e.dateTime)+'</td><td>'+esc(e.location||'-')+'</td><td>'+esc(e.description)+'</td><td>¥'+e.amount.toFixed(2)+'</td><td>'+(p?p.name:'未知')+'</td><td style="font-size:0.7rem;">'+sn+'</td></tr>';});h+='</table></div><hr><div style="font-weight:500;">✏️ 点击费用可编辑</div>';trip.expenses.slice().sort(function(a,b){return new Date(b.dateTime)-new Date(a.dateTime);}).forEach(function(e){var p=trip.families.find(function(f){return f.id===e.paidByFamilyId;});h+='<div class="expense-list-item" onclick="openExpenseEdit(\''+id+'\',\''+e.id+'\')"><div class="expense-info"><strong>'+esc(e.description)+'</strong> · ¥'+e.amount.toFixed(2)+'<div class="expense-meta">'+formatDateFull(e.dateTime)+' | '+(p?p.name:'未知')+'</div></div><span class="arrow">›</span></div>';});h+='<button class="btn btn-success" style="width:100%;margin-top:8px;" onclick="shareDetailedImage(\''+id+'\')">📤 分享长图</button>';}h+='</div>';area.innerHTML=h;};
-  window.openExpenseEdit=function(tripId,expenseId){editingExpenseId=expenseId;appData.activeTripId=tripId;save();renderExpenseEdit(expenseId);};
-  function renderExpenseEdit(expenseId){var area=document.getElementById('contentArea');var trip=getTrip();if(!trip){editingExpenseId=null;renderSummary();return;}var exp=trip.expenses.find(function(e){return e.id===expenseId;});if(!exp){editingExpenseId=null;showDetailedExpenses(appData.activeTripId);return;}var members=[];trip.families.forEach(function(f){f.members.forEach(function(m){members.push({id:m.id,type:m.type,name:m.name,familyName:f.name,familyId:f.id});});});var h='<div><button class="back-btn" onclick="editingExpenseId=null;showDetailedExpenses(\''+appData.activeTripId+'\')">← 返回</button><h3>✏️ 编辑费用</h3><div class="expense-form">';h+='<div class="input-group"><label>📍 地点</label><input class="input-field" id="editLocation" value="'+esc(exp.location||'')+'"></div>';h+='<div class="input-group"><label>📝 描述</label><input class="input-field" id="editDesc" value="'+esc(exp.description)+'"></div>';h+='<div class="input-group"><label>💰 金额</label><input class="input-field" type="number" id="editAmount" value="'+exp.amount+'" step="0.01"></div>';h+='<div class="input-group"><label>📅 时间</label><input class="input-field" type="datetime-local" id="editDateTime" value="'+new Date(exp.dateTime).toISOString().slice(0,16)+'"></div>';h+='<div class="input-group"><label>👤 付款家庭</label><select class="input-field" id="editPayer">'+trip.families.map(function(f){return'<option value="'+f.id+'"'+(f.id===exp.paidByFamilyId?' selected':'')+'>'+esc(f.name)+'</option>';}).join('')+'</select></div>';h+='<div class="input-group"><label>✅ 均摊人员</label><div class="checkbox-list" id="editPersonCheckboxList">'+members.map(function(m){return'<label class="person-checkbox"><input type="checkbox" value="'+m.id+'"'+(exp.sharedMemberIds.includes(m.id)?' checked':'')+'> '+esc(m.familyName)+'·'+esc(m.name)+'</label>';}).join('')+'</div></div>';h+='<div class="action-row"><button class="btn btn-primary" style="flex:1;" onclick="saveExpenseEdit(\''+exp.id+'\')">💾 保存</button><button class="btn btn-danger" style="flex:1;" onclick="deleteExpense(\''+exp.id+'\')">🗑️ 删除</button></div></div></div>';area.innerHTML=h;}
-  window.saveExpenseEdit=function(id){var trip=getTrip();if(!trip)return;var exp=trip.expenses.find(function(e){return e.id===id;});if(!exp)return;exp.location=document.getElementById('editLocation').value.trim();exp.description=document.getElementById('editDesc').value.trim();exp.amount=parseFloat(document.getElementById('editAmount').value);exp.dateTime=new Date(document.getElementById('editDateTime').value).toISOString();exp.paidByFamilyId=document.getElementById('editPayer').value;exp.sharedMemberIds=Array.from(document.querySelectorAll('#editPersonCheckboxList input:checked')).map(function(c){return c.value;});save();editingExpenseId=null;showDetailedExpenses(appData.activeTripId);};
-  window.deleteExpense=function(id){if(!confirm('确定删除？'))return;var trip=getTrip();trip.expenses=trip.expenses.filter(function(e){return e.id!==id;});save();editingExpenseId=null;showDetailedExpenses(appData.activeTripId);};
-  window.shareSummary=function(id){var trip=appData.trips[id];if(!trip)return;var fb={};trip.families.forEach(function(f){fb[f.id]={name:f.name,paid:0,shouldPay:0};});trip.expenses.forEach(function(e){if(fb[e.paidByFamilyId])fb[e.paidByFamilyId].paid+=e.amount;var per=e.sharedMemberIds.length?e.amount/e.sharedMemberIds.length:0;var cnt={};e.sharedMemberIds.forEach(function(mid){var fid=mid.split('_')[1];cnt[fid]=(cnt[fid]||0)+1;});Object.keys(cnt).forEach(function(fid){if(fb[fid])fb[fid].shouldPay+=per*cnt[fid];});});var total=trip.expenses.reduce(function(s,e){return s+e.amount;},0);var div=document.createElement('div');div.style.cssText='position:fixed;top:-9999px;left:-9999px;width:380px;background:white;padding:16px;border-radius:16px;font-family:sans-serif;';div.innerHTML='<h2 style="text-align:center;color:#5e4432;">🚙 自驾乐游天下</h2><h3 style="text-align:center;">'+esc(trip.name)+'</h3><div style="text-align:center;font-size:1.3rem;font-weight:700;">总支出: ¥'+total.toFixed(2)+'</div><hr>'+Object.values(fb).map(function(b){var d=b.paid-b.shouldPay;return'<div style="background:#faf7f3;border-radius:12px;padding:10px;margin:6px 0;"><strong>'+esc(b.name)+'</strong><div>已付¥'+b.paid.toFixed(2)+' | 应摊¥'+b.shouldPay.toFixed(2)+'</div><div style="font-weight:700;">'+(d>=0?'应收':'应付')+'¥'+Math.abs(d).toFixed(2)+'</div></div>';}).join('')+'<div style="text-align:center;color:#8b7355;font-size:0.7rem;">'+new Date().toLocaleDateString()+' 生成</div>';document.body.appendChild(div);html2canvas(div,{scale:2,backgroundColor:'#ffffff'}).then(function(canvas){var a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=trip.name+'_汇总.png';a.click();document.body.removeChild(div);alert('长图已生成！');}).catch(function(){document.body.removeChild(div);});};
-  window.shareDetailedImage=function(id){var node=document.getElementById('shareArea');if(!node)return;html2canvas(node,{scale:2,backgroundColor:'#ffffff'}).then(function(canvas){var a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='费用明细_'+new Date().toLocaleDateString()+'.png';a.click();alert('长图已生成！');});};
+  function render() { if (currentTab === 'setup') renderSetup(); else if (currentTab === 'expense') renderExpense(); else if (currentTab === 'summary') renderSummary(); else if (currentTab === 'settings') renderSettings(); }
 
-  // 设置
-  function renderSettings(){var area=document.getElementById('contentArea');var h='<div><h3>⚙️ 备份与恢复</h3>';h+='<div class="settings-card"><h3>📤 备份数据</h3><p>导出所有数据为文件</p><button class="btn btn-primary" onclick="backupData()">📥 导出备份</button></div>';h+='<div class="settings-card"><h3>📥 恢复数据</h3><p style="color:#c0392b;">⚠️ 将覆盖当前数据</p><input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="restoreData(event)"><button class="btn btn-info" onclick="document.getElementById(\'restoreFileInput\').click()">📂 选择文件恢复</button></div>';h+='<div class="settings-card"><h3>🔄 重置数据</h3><p>恢复默认三家人</p><button class="btn btn-danger" onclick="resetData()">🗑️ 重置</button></div></div>';area.innerHTML=h;}
-  window.backupData=function(){var data=JSON.stringify(appData,null,2);var blob=new Blob([data],{type:'application/json'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='自驾乐游天下_备份_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);alert('✅ 备份完成！');};
-  window.restoreData=function(e){var file=e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(ev){try{var data=JSON.parse(ev.target.result);if(!data.trips||!data.globalFamilies)throw new Error('格式错误');if(!confirm('⚠️ 确定恢复？当前数据将被覆盖！')){e.target.value='';return;}appData=data;save();updateTripSelect();setupDetailTripId=null;summaryDetailTripId=null;editingExpenseId=null;alert('✅ 恢复成功！');render();}catch(err){alert('❌ 文件格式不正确');}e.target.value='';};reader.readAsText(file);};
-  window.resetData=function(){if(!confirm('⚠️ 确定重置所有数据？'))return;if(!confirm('再次确认？'))return;appData={trips:{},activeTripId:null,globalFamilies:getDefaultFamilies()};save();updateTripSelect();setupDetailTripId=null;summaryDetailTripId=null;editingExpenseId=null;alert('✅ 已重置');render();};
+  function getAllMembersFlat(trip) { var all = []; trip.families.forEach(function(f) { f.members.forEach(function(m) { all.push({ id: m.id, type: m.type, name: m.name, familyName: f.name, familyId: f.id }); }); }); return all; }
+  function getChildMembersFlat(trip) { var children = []; trip.families.forEach(function(f) { f.members.forEach(function(m) { if (m.type === 'child') children.push({ id: m.id, type: m.type, name: m.name, familyName: f.name, familyId: f.id }); }); }); return children; }
 
-  load();updateTripSelect();
-  document.getElementById('splashScreen').style.display='flex';
-  document.getElementById('mainApp').style.display='none';
+  window.selectAll = function(listId, updateFn) { var list = document.getElementById(listId); if (!list) return; list.querySelectorAll('input[type="checkbox"]').forEach(function(cb) { cb.checked = true; }); if (updateFn && typeof window[updateFn] === 'function') window[updateFn](); };
+  window.deselectAll = function(listId, updateFn) { var list = document.getElementById(listId); if (!list) return; list.querySelectorAll('input[type="checkbox"]').forEach(function(cb) { cb.checked = false; }); if (updateFn && typeof window[updateFn] === 'function') window[updateFn](); };
+
+  function getShareDisplayText(trip, exp) {
+    if (exp.expenseType === 'split') {
+      var parts = [];
+      trip.families.forEach(function(f) {
+        var famAmount = exp.familyShares && exp.familyShares[f.id] ? exp.familyShares[f.id] : 0;
+        if (famAmount > 0) {
+          var adultCount = 0, childCount = 0;
+          f.members.forEach(function(m) { if (exp.adultMemberIds && exp.adultMemberIds.indexOf(m.id) !== -1) adultCount++; if (exp.childMemberIds && exp.childMemberIds.indexOf(m.id) !== -1) childCount++; });
+          var countStr = ''; if (adultCount > 0 && childCount > 0) countStr = adultCount + '大' + childCount + '小'; else if (adultCount > 0) countStr = adultCount + '大'; else if (childCount > 0) countStr = childCount + '小';
+          parts.push(f.name + '(' + countStr + ') ¥' + famAmount.toFixed(2));
+        }
+      }); return parts.join('、');
+    } else {
+      var familyStats = {}; trip.families.forEach(function(f) { familyStats[f.id] = { name: f.name, adultCount: 0, childCount: 0, members: [] }; });
+      (exp.sharedMemberIds || []).forEach(function(mid) { for (var i = 0; i < trip.families.length; i++) { var m = trip.families[i].members.find(function(x) { return x.id === mid; }); if (m) { familyStats[trip.families[i].id].members.push(m.name); if (m.type === 'adult') familyStats[trip.families[i].id].adultCount++; else familyStats[trip.families[i].id].childCount++; break; } } });
+      var parts = []; Object.values(familyStats).forEach(function(fs) { if (fs.members.length > 0) { var countStr = ''; if (fs.adultCount > 0 && fs.childCount > 0) countStr = fs.adultCount + '大' + fs.childCount + '小'; else if (fs.adultCount > 0) countStr = fs.adultCount + '大'; else if (fs.childCount > 0) countStr = fs.childCount + '小'; parts.push(fs.members.join('、') + '(' + countStr + ')'); } });
+      return parts.join('；');
+    }
+  }
+
+  // 分享弹窗
+  window.showShareModal = function(tripId) {
+    var old = document.getElementById('shareModalOverlay'); if (old) document.body.removeChild(old);
+    var overlay = document.createElement('div'); overlay.className = 'share-modal-overlay'; overlay.id = 'shareModalOverlay';
+    overlay.innerHTML = '<div class="share-modal"><h3>📤 选择分享方式</h3><div class="share-option" onclick="closeShareModal();shareFullPageScreenshot(\'' + tripId + '\')"><span class="option-icon">📸</span><span class="option-text">长截图分享<br><small style="color:#8b7355;">截取本页全部内容</small></span><span class="option-arrow">›</span></div><div class="share-option" onclick="closeShareModal();exportToExcel(\'' + tripId + '\')"><span class="option-icon">📥</span><span class="option-text">导出Excel<br><small style="color:#8b7355;">生成费用报表文件</small></span><span class="option-arrow">›</span></div><button class="cancel-btn" onclick="closeShareModal()">取消</button></div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeShareModal(); });
+  };
+  window.closeShareModal = function() { var overlay = document.getElementById('shareModalOverlay'); if (overlay) document.body.removeChild(overlay); };
+  window.shareFullPageScreenshot = function(tripId) {
+    var content = document.getElementById('contentArea'); if (!content) return;
+    var originalStyle = content.style.cssText; content.style.overflow = 'visible'; content.style.maxHeight = 'none'; content.style.height = 'auto';
+    html2canvas(content, { scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: true }).then(function(canvas) {
+      content.style.cssText = originalStyle; var url = canvas.toDataURL('image/png'); var a = document.createElement('a'); a.href = url;
+      a.download = (appData.trips[tripId] ? appData.trips[tripId].name : '费用明细') + '_长截图.png'; a.click(); alert('✅ 长截图已生成并下载！');
+    }).catch(function() { content.style.cssText = originalStyle; alert('生成失败，请重试'); });
+  };
+  window.exportToExcel = function(tripId) {
+    var trip = appData.trips[tripId]; if (!trip) return;
+    var wb = XLSX.utils.book_new();
+    var detailData = [['序号','时间','消费地点','费用描述','费用类型','金额','付款家庭','分摊详情']];
+    trip.expenses.forEach(function(e,i) { var payer = trip.families.find(function(f){return f.id===e.paidByFamilyId;}); detailData.push([i+1,formatDateFull(e.dateTime),e.location||'',e.description,e.expenseType==='split'?'区分大人/小孩':'统一费用',e.amount.toFixed(2),payer?payer.name:'',getShareDisplayText(trip,e)]); });
+    detailData.push(['','','','','合计',trip.expenses.reduce(function(s,e){return s+e.amount;},0).toFixed(2),'','']);
+    var ws1 = XLSX.utils.aoa_to_sheet(detailData); ws1['!cols']=[{wch:5},{wch:18},{wch:16},{wch:20},{wch:14},{wch:10},{wch:12},{wch:50}]; XLSX.utils.book_append_sheet(wb,ws1,'费用明细');
+    var fb = {}; trip.families.forEach(function(f){fb[f.id]={name:f.name,paid:0,shouldPay:0};});
+    trip.expenses.forEach(function(e){if(fb[e.paidByFamilyId])fb[e.paidByFamilyId].paid+=e.amount;if(e.familyShares){Object.keys(e.familyShares).forEach(function(fid){if(fb[fid])fb[fid].shouldPay+=e.familyShares[fid];});}else{var per=e.sharedMemberIds.length?e.amount/e.sharedMemberIds.length:0;var cnt={};e.sharedMemberIds.forEach(function(mid){var fid=mid.split('_')[1];cnt[fid]=(cnt[fid]||0)+1;});Object.keys(cnt).forEach(function(fid){if(fb[fid])fb[fid].shouldPay+=per*cnt[fid];});}});
+    var summaryData = [['家庭名称','已支付金额','应分摊金额','差额','状态']]; Object.values(fb).forEach(function(b){var d=b.paid-b.shouldPay;summaryData.push([b.name,b.paid.toFixed(2),b.shouldPay.toFixed(2),Math.abs(d).toFixed(2),d>=0?'应收':'应付']);});
+    summaryData.push(['合计',Object.values(fb).reduce(function(s,b){return s+b.paid;},0).toFixed(2),Object.values(fb).reduce(function(s,b){return s+b.shouldPay;},0).toFixed(2),'','']);
+    var ws2 = XLSX.utils.aoa_to_sheet(summaryData); ws2['!cols']=[{wch:14},{wch:12},{wch:12},{wch:10},{wch:8}]; XLSX.utils.book_append_sheet(wb,ws2,'家庭汇总');
+    var splitData = [['序号','时间','消费地点','描述','大人单价','小孩单价','大人人数','小孩人数','金额']];
+    trip.expenses.forEach(function(e,i){if(e.expenseType==='split'){splitData.push([i+1,formatDateFull(e.dateTime),e.location||'',e.description,(e.adultPrice||0).toFixed(2),(e.childPrice||0).toFixed(2),(e.adultMemberIds||[]).length,(e.childMemberIds||[]).length,e.amount.toFixed(2)]);}});
+    if(splitData.length>1){var ws3=XLSX.utils.aoa_to_sheet(splitData);ws3['!cols']=[{wch:5},{wch:18},{wch:16},{wch:20},{wch:10},{wch:10},{wch:8},{wch:8},{wch:10}];XLSX.utils.book_append_sheet(wb,ws3,'区分费用明细');}
+    XLSX.writeFile(wb,trip.name+'_费用报表.xlsx'); alert('✅ Excel报表已生成并下载！');
+  };
+
+  // ==================== 家庭设置 ====================
+  function renderSetup() {
+    var area = document.getElementById('contentArea');
+    if (setupDetailTripId) { renderSetupDetail(setupDetailTripId); return; }
+    var h = '<div><h3 style="color:#5e4432;">👨‍👩‍👧‍👦 出游活动</h3><p style="color:#8b7355;font-size:0.8rem;">点击进入家庭明细，右侧删除</p>';
+    var ids = Object.keys(appData.trips);
+    if (!ids.length) h += '<div class="empty-message">📌 还没有出游活动</div>';
+    else ids.forEach(function(id) { var t = appData.trips[id]; h += '<div class="trip-list-card"><div onclick="openSetupDetail(\'' + id + '\')" style="flex:1;cursor:pointer;"><h3>🏷️ ' + esc(t.name) + '</h3><div class="trip-meta">' + t.families.length + '家庭·' + t.families.reduce(function(s,f){return s+f.members.length;},0) + '人·' + t.expenses.length + '笔</div></div><button class="btn btn-small btn-danger" onclick="event.stopPropagation();confirmDeleteTrip(\'' + id + '\')">🗑️</button></div>'; });
+    h += '<button class="btn new-trip-btn" onclick="createNewTrip()">➕ 创建新出游（默认三家人）</button></div>';
+    area.innerHTML = h;
+  }
+
+  window.confirmDeleteTrip = function(tripId) {
+    var trip = appData.trips[tripId]; if (!trip) return;
+    if (!confirm('⚠️ 确定删除 "' + trip.name + '"？\n\n❌ 不可恢复！')) return;
+    if (!confirm('再次确认删除？')) return;
+    delete appData.trips[tripId];
+    if (appData.activeTripId === tripId) appData.activeTripId = null;
+    setupDetailTripId = null; summaryDetailTripId = null; editingExpenseId = null;
+    save(); updateTripSelect(); render();
+  };
+
+  window.openSetupDetail = function(id) { setupDetailTripId = id; appData.activeTripId = id; updateTripSelect(); save(); renderSetupDetail(id); };
+
+  function renderSetupDetail(id) {
+    var area = document.getElementById('contentArea'); var trip = appData.trips[id]; if (!trip) { setupDetailTripId = null; renderSetup(); return; }
+    var h = '<div><button class="back-btn" onclick="setupDetailTripId=null;renderSetup();">← 返回</button><h3>' + esc(trip.name) + ' - 家庭明细</h3><div class="family-setup">';
+    trip.families.forEach(function(f) {
+      h += '<div class="family-card"><div class="family-header"><input class="family-name-input" value="' + esc(f.name) + '" onchange="updateFamilyName(\'' + f.id + '\',this.value)"><button class="btn-outline btn-small btn-danger" onclick="removeFamily(\'' + f.id + '\')">移除</button></div><div class="member-list">';
+      f.members.forEach(function(m) {
+        h += '<div class="member-row"><span class="member-tag">' + (m.type === 'adult' ? '👤大人' : '👶小孩') + '</span><input class="member-name-input" value="' + esc(m.name) + '" onchange="updateMemberName(\'' + f.id + '\',\'' + m.id + '\',this.value)"><div class="sort-btns"><button class="sort-btn" onclick="moveMember(\'' + f.id + '\',\'' + m.id + '\',-1)">▲</button><button class="sort-btn" onclick="moveMember(\'' + f.id + '\',\'' + m.id + '\',1)">▼</button></div><button class="btn-outline btn-small" onclick="removeMember(\'' + f.id + '\',\'' + m.id + '\')">✕</button></div>';
+      });
+      h += '</div><div style="display:flex;gap:6px;margin-top:6px;"><button class="btn btn-small" onclick="addMember(\'' + f.id + '\',\'adult\')">+大人</button><button class="btn btn-small" onclick="addMember(\'' + f.id + '\',\'child\')">+小孩</button></div></div>';
+    });
+    h += '<div class="action-row"><button class="btn btn-primary" onclick="addFamilyToTrip(\'' + id + '\')">➕ 添加家庭</button><button class="btn" onclick="saveTripFamilies()">💾 保存</button></div></div></div>';
+    area.innerHTML = h;
+  }
+
+  window.moveMember = function(fid, mid, dir) { var trip = getTrip(); if (!trip) return; var fam = trip.families.find(function(f) { return f.id === fid; }); if (!fam) return; var idx = fam.members.findIndex(function(m) { return m.id === mid; }); if (idx === -1 || (dir === -1 && idx === 0) || (dir === 1 && idx === fam.members.length - 1)) return; var tmp = fam.members[idx]; fam.members[idx] = fam.members[idx + dir]; fam.members[idx + dir] = tmp; save(); renderSetupDetail(appData.activeTripId); };
+  window.saveTripFamilies = function() { save(); alert('已保存'); };
+  window.addFamilyToTrip = function(id) { var trip = appData.trips[id]; if (!trip) return; var name = prompt('家庭名称：', '新家庭'); if (!name || !name.trim()) return; var nid = 'f' + Date.now(); var nf = { id: nid, name: name.trim(), members: [{id:'m_'+nid+'_0',type:'adult',name:'成员1'},{id:'m_'+nid+'_1',type:'adult',name:'成员2'}] }; trip.families.push(nf); appData.globalFamilies.push(JSON.parse(JSON.stringify(nf))); save(); renderSetupDetail(id); };
+  window.removeFamily = function(fid) { var trip = getTrip(); if (!trip || trip.families.length <= 1) { alert('至少保留一个家庭'); return; } trip.families = trip.families.filter(function(f) { return f.id !== fid; }); appData.globalFamilies = appData.globalFamilies.filter(function(f) { return f.id !== fid; }); trip.expenses = trip.expenses.filter(function(e) { return e.paidByFamilyId !== fid; }); save(); renderSetupDetail(appData.activeTripId); };
+  window.addMember = function(fid, type) { var trip = getTrip(); if (!trip) return; var fam = trip.families.find(function(f) { return f.id === fid; }); if (!fam) return; var name = prompt('姓名：', type === 'adult' ? '新大人' : '新小孩'); if (!name || !name.trim()) return; fam.members.push({ id: 'm_' + fid + '_' + Date.now(), type: type, name: name.trim() }); save(); renderSetupDetail(appData.activeTripId); };
+  window.removeMember = function(fid, mid) { var trip = getTrip(); if (!trip) return; var fam = trip.families.find(function(f) { return f.id === fid; }); if (!fam || fam.members.length <= 1) { alert('至少一人'); return; } fam.members = fam.members.filter(function(m) { return m.id !== mid; }); trip.expenses = trip.expenses.filter(function(e) { return !e.sharedMemberIds.includes(mid); }); save(); renderSetupDetail(appData.activeTripId); };
+  window.updateFamilyName = function(fid, name) { if (!name.trim()) return; var trip = getTrip(); if (!trip) return; var f = trip.families.find(function(x) { return x.id === fid; }); if (f) f.name = name.trim(); save(); };
+  window.updateMemberName = function(fid, mid, name) { if (!name.trim()) return; var trip = getTrip(); if (!trip) return; var fam = trip.families.find(function(x) { return x.id === fid; }); if (!fam) return; var m = fam.members.find(function(x) { return x.id === mid; }); if (m) m.name = name.trim(); save(); };
+
+  // ==================== 记账页面 ====================
+  function renderExpense() {
+    var area = document.getElementById('contentArea');
+    var trip = getTrip();
+    if (!trip) { area.innerHTML = '<div class="empty-message">📌 请先选择出游活动</div>'; return; }
+
+    var allMembers = getAllMembersFlat(trip);
+    var childMembers = getChildMembersFlat(trip);
+
+    var h = '<div class="expense-form"><div style="font-weight:600;color:#5e4432;">🧾 ' + esc(trip.name) + ' - 记一笔</div>';
+    h += '<div class="input-group"><label>📍 消费地点</label><input class="input-field" id="expLocation" placeholder="海边餐厅、景区门口"></div>';
+    h += '<div class="input-group"><label>📂 费用类型</label><select class="input-field" id="expenseType" onchange="toggleExpenseType(\'new\')"><option value="unified">💰 统一费用（所有人相同）</option><option value="split">👤👶 区分大人/小孩（单价不同）</option></select></div>';
+    h += '<div class="input-group"><label>📝 描述</label><input class="input-field" id="expDesc" placeholder="午餐、门票"></div>';
+
+    h += '<div id="unifiedSection_new">';
+    h += '<div class="input-group"><label>💰 总金额</label><input class="input-field" type="number" id="expAmount" placeholder="0.00" step="0.01"></div>';
+    h += '<div class="input-group"><label>✅ 均摊人员</label>';
+    h += '<div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'personCheckboxList_new\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'personCheckboxList_new\')">全不选</button></div>';
+    h += '<div class="checkbox-list" id="personCheckboxList_new">' + allMembers.map(function(m) { return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '" checked> ' + esc(m.familyName) + '·' + esc(m.name) + ' (' + (m.type === 'adult' ? '大人' : '小孩') + ')</label>'; }).join('') + '</div></div>';
+    h += '</div>';
+
+    h += '<div id="splitSection_new" style="display:none;">';
+    h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👤 按大人收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'adultCheckboxList_new\',\'updateSplitTotal_new\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'adultCheckboxList_new\',\'updateSplitTotal_new\')">全不选</button></div></div>';
+    h += '<div class="hint-text">勾选所有按大人单价收费的人员（含身高超标的儿童）</div>';
+    h += '<div class="input-group"><label>大人单价（元/人）</label><input class="input-field" type="number" id="adultPrice_new" placeholder="0.00" step="0.01" oninput="updateSplitTotal_new()"></div>';
+    h += '<div class="checkbox-list" id="adultCheckboxList_new">' + allMembers.map(function(m) { return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '"' + (m.type === 'adult' ? ' checked' : '') + ' onchange="updateSplitTotal_new()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (' + (m.type === 'adult' ? '大人' : '小孩') + ')</label>'; }).join('') + '</div>';
+    h += '<div class="subtotal-text">已选 <strong id="adultSelectedCount_new">' + allMembers.filter(function(m){return m.type==='adult';}).length + '</strong> 人，小计：<strong id="adultSubtotal_new">¥0.00</strong></div></div>';
+
+    h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👶 按小孩收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'childCheckboxList_new\',\'updateSplitTotal_new\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'childCheckboxList_new\',\'updateSplitTotal_new\')">全不选</button></div></div>';
+    h += '<div class="hint-text">勾选按小孩单价收费的儿童</div>';
+    h += '<div class="input-group"><label>小孩单价（元/人）</label><input class="input-field" type="number" id="childPrice_new" placeholder="0.00" step="0.01" oninput="updateSplitTotal_new()"></div>';
+    h += '<div class="checkbox-list" id="childCheckboxList_new">' + childMembers.map(function(m) { return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '" checked onchange="updateSplitTotal_new()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (小孩)</label>'; }).join('') + '</div>';
+    h += '<div class="subtotal-text">已选 <strong id="childSelectedCount_new">' + childMembers.length + '</strong> 人，小计：<strong id="childSubtotal_new">¥0.00</strong></div></div>';
+
+    h += '<div class="total-text">总计：<span id="splitTotal_new">¥0.00</span></div>';
+    h += '<div style="background:#faf7f3;border-radius:16px;padding:10px;font-size:0.75rem;color:#7b6452;">💡 区分模式将按<strong>家庭</strong>自动均摊</div>';
+    h += '</div>';
+
+    h += '<div class="input-group"><label>📅 消费时间</label><input class="input-field" type="datetime-local" id="expDateTime" value="' + getCurrentDateTime() + '"></div>';
+    h += '<div class="input-group"><label>👤 付款家庭</label><select class="input-field" id="expPayer">' + trip.families.map(function(f) { return '<option value="' + f.id + '">' + esc(f.name) + '</option>'; }).join('') + '</select></div>';
+    h += '<button class="btn btn-primary" style="width:100%;" onclick="addExpense()">➕ 记录费用</button></div>';
+
+    if (trip.expenses.length > 0) {
+      h += '<hr><div style="font-weight:500;">📋 最近记录</div>';
+      trip.expenses.slice().reverse().slice(0, 5).forEach(function(exp) {
+        var payer = trip.families.find(function(f) { return f.id === exp.paidByFamilyId; });
+        h += '<div style="background:#faf7f3;border-radius:12px;padding:8px;margin:6px 0;font-size:0.8rem;"><strong>' + esc(exp.description) + '</strong> ¥' + exp.amount.toFixed(2) + ' <span style="color:#8b7355;">(' + (payer ? payer.name : '未知') + ')</span>';
+        h += '<div style="color:#aa8e7a;font-size:0.7rem;">' + getShareDisplayText(trip, exp) + ' · ' + formatDateFull(exp.dateTime) + '</div></div>';
+      });
+    }
+    area.innerHTML = h;
+  }
+
+  window.toggleExpenseType = function(prefix) {
+    var unified = document.getElementById('unifiedSection_' + prefix);
+    var split = document.getElementById('splitSection_' + prefix);
+    var type = document.getElementById('expenseType' + (prefix === 'edit' ? '_edit' : ''));
+    if (!type) { unified.style.display = 'block'; split.style.display = 'none'; return; }
+    if (type.value === 'unified') { unified.style.display = 'block'; split.style.display = 'none'; }
+    else { unified.style.display = 'none'; split.style.display = 'block'; if (prefix === 'new') updateSplitTotal_new(); else if (prefix === 'edit') updateSplitTotal_edit(); }
+  };
+
+  window.updateSplitTotal_new = function() {
+    var ap = parseFloat(document.getElementById('adultPrice_new').value) || 0;
+    var cp = parseFloat(document.getElementById('childPrice_new').value) || 0;
+    var ac = document.querySelectorAll('#adultCheckboxList_new input:checked').length;
+    var cc = document.querySelectorAll('#childCheckboxList_new input:checked').length;
+    var as = ap * ac, cs = cp * cc;
+    var el = function(id) { return document.getElementById(id); };
+    if (el('adultSelectedCount_new')) el('adultSelectedCount_new').textContent = ac;
+    if (el('childSelectedCount_new')) el('childSelectedCount_new').textContent = cc;
+    if (el('adultSubtotal_new')) el('adultSubtotal_new').textContent = '¥' + as.toFixed(2);
+    if (el('childSubtotal_new')) el('childSubtotal_new').textContent = '¥' + cs.toFixed(2);
+    if (el('splitTotal_new')) el('splitTotal_new').textContent = '¥' + (as + cs).toFixed(2);
+  };
+
+  window.updateSplitTotal_edit = function() {
+    var ap = parseFloat(document.getElementById('adultPrice_edit').value) || 0;
+    var cp = parseFloat(document.getElementById('childPrice_edit').value) || 0;
+    var ac = document.querySelectorAll('#adultCheckboxList_edit input:checked').length;
+    var cc = document.querySelectorAll('#childCheckboxList_edit input:checked').length;
+    var as = ap * ac, cs = cp * cc;
+    var el = function(id) { return document.getElementById(id); };
+    if (el('adultSelectedCount_edit')) el('adultSelectedCount_edit').textContent = ac;
+    if (el('childSelectedCount_edit')) el('childSelectedCount_edit').textContent = cc;
+    if (el('adultSubtotal_edit')) el('adultSubtotal_edit').textContent = '¥' + as.toFixed(2);
+    if (el('childSubtotal_edit')) el('childSubtotal_edit').textContent = '¥' + cs.toFixed(2);
+    if (el('splitTotal_edit')) el('splitTotal_edit').textContent = '¥' + (as + cs).toFixed(2);
+  };
+
+  function calculateFamilyShares(trip, adultMemberIds, childMemberIds, adultPrice, childPrice) {
+    var familyShares = {};
+    trip.families.forEach(function(f) { familyShares[f.id] = 0; });
+    trip.families.forEach(function(f) {
+      var ft = 0;
+      f.members.forEach(function(m) { if (adultMemberIds.indexOf(m.id) !== -1) ft += adultPrice; if (childMemberIds.indexOf(m.id) !== -1) ft += childPrice; });
+      familyShares[f.id] = ft;
+    });
+    return familyShares;
+  }
+
+  window.addExpense = function() {
+    var trip = getTrip(); if (!trip) return;
+    var loc = document.getElementById('expLocation').value.trim();
+    var expenseType = document.getElementById('expenseType').value;
+    var desc = document.getElementById('expDesc').value.trim();
+    var payer = document.getElementById('expPayer').value;
+    var dt = document.getElementById('expDateTime').value;
+    if (!desc) return alert('请输入描述'); if (!dt) return alert('请选择时间');
+    var amount = 0, adultPrice = 0, childPrice = 0, adultMemberIds = [], childMemberIds = [], sharedMemberIds = [], sharedFamilyIds = [], familyShares = {};
+    if (expenseType === 'unified') {
+      amount = parseFloat(document.getElementById('expAmount').value);
+      if (isNaN(amount) || amount <= 0) return alert('请输入有效金额');
+      var cbs = document.querySelectorAll('#personCheckboxList_new input:checked');
+      if (cbs.length === 0) return alert('请选择均摊人员');
+      sharedMemberIds = Array.from(cbs).map(function(c) { return c.value; });
+      trip.families.forEach(function(f) { familyShares[f.id] = 0; });
+      var perPerson = amount / sharedMemberIds.length;
+      sharedMemberIds.forEach(function(mid) { var fid = mid.split('_')[1]; if (familyShares[fid] !== undefined) familyShares[fid] += perPerson; });
+      sharedFamilyIds = Object.keys(familyShares).filter(function(fid) { return familyShares[fid] > 0; });
+    } else {
+      adultPrice = parseFloat(document.getElementById('adultPrice_new').value) || 0;
+      childPrice = parseFloat(document.getElementById('childPrice_new').value) || 0;
+      adultMemberIds = Array.from(document.querySelectorAll('#adultCheckboxList_new input:checked')).map(function(cb) { return cb.value; });
+      childMemberIds = Array.from(document.querySelectorAll('#childCheckboxList_new input:checked')).map(function(cb) { return cb.value; });
+      if (!adultMemberIds.length && !childMemberIds.length) return alert('请选择参与的人员');
+      amount = adultPrice * adultMemberIds.length + childPrice * childMemberIds.length;
+      if (amount <= 0) return alert('请输入有效单价');
+      familyShares = calculateFamilyShares(trip, adultMemberIds, childMemberIds, adultPrice, childPrice);
+      sharedFamilyIds = Object.keys(familyShares).filter(function(fid) { return familyShares[fid] > 0; });
+      trip.families.forEach(function(f) { if (familyShares[f.id] > 0) { f.members.forEach(function(m) { sharedMemberIds.push(m.id); }); } });
+    }
+    trip.expenses.push({ id: 'e' + Date.now(), location: loc, description: desc, amount: amount, expenseType: expenseType, adultPrice: adultPrice, childPrice: childPrice, adultMemberIds: adultMemberIds, childMemberIds: childMemberIds, paidByFamilyId: payer, sharedMemberIds: sharedMemberIds, sharedFamilyIds: sharedFamilyIds, familyShares: familyShares, dateTime: new Date(dt).toISOString() });
+    save(); renderExpense();
+  };
+
+  // ==================== 费用明细 ====================
+  function renderSummary() {
+    var area = document.getElementById('contentArea');
+    if (editingExpenseId) { renderExpenseEdit(editingExpenseId); return; }
+    if (summaryDetailTripId) { renderTripDetail(summaryDetailTripId); return; }
+    var h = '<div><h3>📊 出游总览</h3><p style="color:#8b7355;font-size:0.8rem;">点击查看各家费用</p>';
+    var ids = Object.keys(appData.trips);
+    if (!ids.length) h += '<div class="empty-message">✨ 还没有出游活动</div>';
+    else ids.forEach(function(id) { var t = appData.trips[id]; h += '<div class="trip-overview-card" onclick="showTripDetail(\'' + id + '\')"><h3>🏷️ ' + esc(t.name) + '</h3><div class="trip-total">¥' + t.expenses.reduce(function(s,e){return s+e.amount;},0).toFixed(2) + '</div><span style="color:#8b7355;">' + t.expenses.length + '笔·' + t.families.length + '家庭</span></div>'; });
+    h += '</div>'; area.innerHTML = h;
+  }
+
+  window.showTripDetail = function(id) { summaryDetailTripId = id; appData.activeTripId = id; editingExpenseId = null; updateTripSelect(); save(); renderTripDetail(id); };
+
+  function renderTripDetail(id) {
+    var area = document.getElementById('contentArea'); var trip = appData.trips[id]; if (!trip) { summaryDetailTripId = null; renderSummary(); return; }
+    var fb = {}; trip.families.forEach(function(f) { fb[f.id] = { name: f.name, paid: 0, shouldPay: 0 }; });
+    trip.expenses.forEach(function(e) {
+      if (fb[e.paidByFamilyId]) fb[e.paidByFamilyId].paid += e.amount;
+      if (e.familyShares) { Object.keys(e.familyShares).forEach(function(fid) { if (fb[fid]) fb[fid].shouldPay += e.familyShares[fid]; }); }
+      else { var per = e.sharedMemberIds.length ? e.amount / e.sharedMemberIds.length : 0; var cnt = {}; e.sharedMemberIds.forEach(function(mid) { var fid = mid.split('_')[1]; cnt[fid] = (cnt[fid] || 0) + 1; }); Object.keys(cnt).forEach(function(fid) { if (fb[fid]) fb[fid].shouldPay += per * cnt[fid]; }); }
+    });
+    var h = '<div><button class="back-btn" onclick="summaryDetailTripId=null;renderSummary();">← 返回</button><h3>' + esc(trip.name) + '</h3>';
+    if (!trip.expenses.length) h += '<div class="empty-message">✨ 还没有费用</div>';
+    else { h += '<div class="trip-total">总支出: ¥' + trip.expenses.reduce(function(s,e){return s+e.amount;},0).toFixed(2) + '</div>'; Object.values(fb).forEach(function(b) { var d = b.paid - b.shouldPay; h += '<div class="summary-card"><h4>' + esc(b.name) + '</h4><div class="balance-row"><span>已支付</span><span>¥' + b.paid.toFixed(2) + '</span></div><div class="balance-row"><span>应分摊</span><span>¥' + b.shouldPay.toFixed(2) + '</span></div><div class="balance-row"><strong>' + (d >= 0 ? '应收' : '应付') + '</strong><strong class="total-amount">¥' + Math.abs(d).toFixed(2) + '</strong></div></div>'; }); h += '<div class="action-row"><button class="btn btn-primary" style="flex:1;" onclick="showDetailedExpenses(\'' + id + '\')">📋 查看明细</button><button class="btn btn-share" style="flex:1;margin-left:6px;" onclick="showShareModal(\'' + id + '\')">📤 分享</button></div>'; }
+    h += '</div>'; area.innerHTML = h;
+  }
+
+  window.showDetailedExpenses = function(id) {
+    var area = document.getElementById('contentArea'); var trip = appData.trips[id]; if (!trip) return;
+    var h = '<div><button class="back-btn" onclick="showTripDetail(\'' + id + '\')">← 返回</button><h3>📋 详细清单</h3>';
+    if (!trip.expenses.length) h += '<div class="empty-message">暂无记录</div>';
+    else {
+      h += '<div id="shareArea" class="share-img-container"><h4 style="text-align:center;">' + esc(trip.name) + ' - 费用明细</h4><table class="detail-table"><tr><th>时间</th><th>地点</th><th>描述</th><th>金额</th><th>付款方</th><th>分摊详情</th></tr>';
+      trip.expenses.forEach(function(e) { var payer = trip.families.find(function(f) { return f.id === e.paidByFamilyId; }); var shareText = getShareDisplayText(trip, e); var typeLabel = e.expenseType === 'split' ? ' [区分]' : ''; h += '<tr><td>' + formatDateFull(e.dateTime) + '</td><td>' + esc(e.location || '-') + '</td><td>' + esc(e.description) + typeLabel + '</td><td>¥' + e.amount.toFixed(2) + '</td><td>' + (payer ? payer.name : '未知') + '</td><td style="font-size:0.7rem;">' + shareText + '</td></tr>'; });
+      h += '</table></div><hr><div style="font-weight:500;">✏️ 点击费用可编辑</div>';
+      trip.expenses.slice().sort(function(a,b){return new Date(b.dateTime)-new Date(a.dateTime);}).forEach(function(e) { var payer = trip.families.find(function(f){return f.id===e.paidByFamilyId;}); var typeBadge = e.expenseType === 'split' ? ' <span style="background:#fff3cd;padding:1px 5px;border-radius:8px;font-size:0.6rem;">区分</span>' : ''; h += '<div class="expense-list-item" onclick="openExpenseEdit(\'' + id + '\',\'' + e.id + '\')"><div class="expense-info"><strong>' + esc(e.description) + '</strong>' + typeBadge + ' · ¥' + e.amount.toFixed(2) + '<div class="expense-meta">' + formatDateFull(e.dateTime) + ' | ' + (payer?payer.name:'未知') + '</div></div><span>›</span></div>'; });
+      h += '<button class="btn btn-share" style="width:100%;margin-top:8px;" onclick="showShareModal(\'' + id + '\')">📤 分享</button>';
+    }
+    h += '</div>'; area.innerHTML = h;
+  };
+
+  window.openExpenseEdit = function(tripId, expenseId) { editingExpenseId = expenseId; appData.activeTripId = tripId; save(); renderExpenseEdit(expenseId); };
+
+  function renderExpenseEdit(expenseId) {
+    var area = document.getElementById('contentArea'); var trip = getTrip(); if (!trip) { editingExpenseId = null; renderSummary(); return; }
+    var exp = trip.expenses.find(function(e) { return e.id === expenseId; }); if (!exp) { editingExpenseId = null; showDetailedExpenses(appData.activeTripId); return; }
+    var allMembers = getAllMembersFlat(trip); var childMembers = getChildMembersFlat(trip);
+    var h = '<div><button class="back-btn" onclick="editingExpenseId=null;showDetailedExpenses(\'' + appData.activeTripId + '\')">← 返回</button><h3>✏️ 编辑费用</h3><div class="expense-form">';
+    h += '<div class="input-group"><label>📍 地点</label><input class="input-field" id="editLocation" value="' + esc(exp.location || '') + '"></div>';
+    h += '<div class="input-group"><label>📂 类型</label><select class="input-field" id="expenseType_edit" onchange="toggleExpenseType(\'edit\')"><option value="unified"' + (exp.expenseType !== 'split' ? ' selected' : '') + '>💰 统一费用</option><option value="split"' + (exp.expenseType === 'split' ? ' selected' : '') + '>👤👶 区分大人/小孩</option></select></div>';
+    h += '<div class="input-group"><label>📝 描述</label><input class="input-field" id="editDesc" value="' + esc(exp.description) + '"></div>';
+    h += '<div id="unifiedSection_edit"' + (exp.expenseType === 'split' ? ' style="display:none;"' : '') + '><div class="input-group"><label>💰 总金额</label><input class="input-field" type="number" id="editAmount" value="' + exp.amount + '" step="0.01"></div><div class="input-group"><label>✅ 均摊人员</label><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'personCheckboxList_edit\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'personCheckboxList_edit\')">全不选</button></div><div class="checkbox-list" id="personCheckboxList_edit">' + allMembers.map(function(m) { var checked = exp.sharedMemberIds.includes(m.id) ? ' checked' : ''; return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '"' + checked + '> ' + esc(m.familyName) + '·' + esc(m.name) + ' (' + (m.type === 'adult' ? '大人' : '小孩') + ')</label>'; }).join('') + '</div></div></div>';
+    var displaySplit = exp.expenseType === 'split' ? 'block' : 'none';
+    h += '<div id="splitSection_edit" style="display:' + displaySplit + ';">';
+    h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👤 按大人收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'adultCheckboxList_edit\',\'updateSplitTotal_edit\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'adultCheckboxList_edit\',\'updateSplitTotal_edit\')">全不选</button></div></div><div class="input-group"><label>大人单价</label><input class="input-field" type="number" id="adultPrice_edit" value="' + (exp.adultPrice || 0) + '" step="0.01" oninput="updateSplitTotal_edit()"></div><div class="checkbox-list" id="adultCheckboxList_edit">' + allMembers.map(function(m) { var checked = exp.adultMemberIds && exp.adultMemberIds.includes(m.id) ? ' checked' : ''; return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '"' + checked + ' onchange="updateSplitTotal_edit()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (' + (m.type === 'adult' ? '大人' : '小孩') + ')</label>'; }).join('') + '</div><div class="subtotal-text">已选 <strong id="adultSelectedCount_edit">' + (exp.adultMemberIds ? exp.adultMemberIds.length : 0) + '</strong> 人，小计：<strong id="adultSubtotal_edit">¥' + ((exp.adultPrice || 0) * (exp.adultMemberIds ? exp.adultMemberIds.length : 0)).toFixed(2) + '</strong></div></div>';
+    h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👶 按小孩收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'childCheckboxList_edit\',\'updateSplitTotal_edit\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'childCheckboxList_edit\',\'updateSplitTotal_edit\')">全不选</button></div></div><div class="input-group"><label>小孩单价</label><input class="input-field" type="number" id="childPrice_edit" value="' + (exp.childPrice || 0) + '" step="0.01" oninput="updateSplitTotal_edit()"></div><div class="checkbox-list" id="childCheckboxList_edit">' + childMembers.map(function(m) { var checked = exp.childMemberIds && exp.childMemberIds.includes(m.id) ? ' checked' : ''; return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '"' + checked + ' onchange="updateSplitTotal_edit()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (小孩)</label>'; }).join('') + '</div><div class="subtotal-text">已选 <strong id="childSelectedCount_edit">' + (exp.childMemberIds ? exp.childMemberIds.length : 0) + '</strong> 人，小计：<strong id="childSubtotal_edit">¥' + ((exp.childPrice || 0) * (exp.childMemberIds ? exp.childMemberIds.length : 0)).toFixed(2) + '</strong></div></div>';
+    h += '<div class="total-text">总计：<span id="splitTotal_edit">¥' + exp.amount.toFixed(2) + '</span></div><div style="background:#faf7f3;border-radius:16px;padding:10px;font-size:0.75rem;color:#7b6452;">💡 区分模式将按<strong>家庭</strong>自动均摊</div></div>';
+    h += '<div class="input-group"><label>📅 时间</label><input class="input-field" type="datetime-local" id="editDateTime" value="' + new Date(exp.dateTime).toISOString().slice(0, 16) + '"></div>';
+    h += '<div class="input-group"><label>👤 付款家庭</label><select class="input-field" id="editPayer">' + trip.families.map(function(f) { return '<option value="' + f.id + '"' + (f.id === exp.paidByFamilyId ? ' selected' : '') + '>' + esc(f.name) + '</option>'; }).join('') + '</select></div>';
+    h += '<div class="action-row"><button class="btn btn-primary" style="flex:1;" onclick="saveExpenseEdit(\'' + exp.id + '\')">💾 保存</button><button class="btn btn-danger" style="flex:1;" onclick="deleteExpense(\'' + exp.id + '\')">🗑️ 删除</button></div></div></div>';
+    area.innerHTML = h;
+  }
+
+  window.saveExpenseEdit = function(id) {
+    var trip = getTrip(); if (!trip) return;
+    var exp = trip.expenses.find(function(e) { return e.id === id; }); if (!exp) return;
+    var expenseType = document.getElementById('expenseType_edit').value;
+    exp.location = document.getElementById('editLocation').value.trim();
+    exp.description = document.getElementById('editDesc').value.trim();
+    exp.dateTime = new Date(document.getElementById('editDateTime').value).toISOString();
+    exp.paidByFamilyId = document.getElementById('editPayer').value;
+    var familyShares = {}, sharedFamilyIds = [], sharedMemberIds = [];
+    if (expenseType === 'unified') {
+      exp.expenseType = 'unified'; exp.adultPrice = 0; exp.childPrice = 0; exp.adultMemberIds = []; exp.childMemberIds = [];
+      exp.amount = parseFloat(document.getElementById('editAmount').value) || 0;
+      if (exp.amount <= 0) return alert('请输入有效金额');
+      sharedMemberIds = Array.from(document.querySelectorAll('#personCheckboxList_edit input:checked')).map(function(c) { return c.value; });
+      if (sharedMemberIds.length === 0) return alert('请选择均摊人员');
+      trip.families.forEach(function(f) { familyShares[f.id] = 0; });
+      var perPerson = exp.amount / sharedMemberIds.length;
+      sharedMemberIds.forEach(function(mid) { var fid = mid.split('_')[1]; if (familyShares[fid] !== undefined) familyShares[fid] += perPerson; });
+      sharedFamilyIds = Object.keys(familyShares).filter(function(fid) { return familyShares[fid] > 0; });
+    } else {
+      exp.expenseType = 'split'; exp.adultPrice = parseFloat(document.getElementById('adultPrice_edit').value) || 0; exp.childPrice = parseFloat(document.getElementById('childPrice_edit').value) || 0;
+      exp.adultMemberIds = Array.from(document.querySelectorAll('#adultCheckboxList_edit input:checked')).map(function(cb) { return cb.value; });
+      exp.childMemberIds = Array.from(document.querySelectorAll('#childCheckboxList_edit input:checked')).map(function(cb) { return cb.value; });
+      exp.amount = exp.adultPrice * exp.adultMemberIds.length + exp.childPrice * exp.childMemberIds.length;
+      if (exp.amount <= 0) return alert('请输入有效单价');
+      familyShares = calculateFamilyShares(trip, exp.adultMemberIds, exp.childMemberIds, exp.adultPrice, exp.childPrice);
+      sharedFamilyIds = Object.keys(familyShares).filter(function(fid) { return familyShares[fid] > 0; });
+      trip.families.forEach(function(f) { if (familyShares[f.id] > 0) { f.members.forEach(function(m) { sharedMemberIds.push(m.id); }); } });
+    }
+    exp.familyShares = familyShares; exp.sharedFamilyIds = sharedFamilyIds; exp.sharedMemberIds = sharedMemberIds;
+    save(); editingExpenseId = null; showDetailedExpenses(appData.activeTripId);
+  };
+
+  window.deleteExpense = function(id) { if (!confirm('确定删除？')) return; var trip = getTrip(); trip.expenses = trip.expenses.filter(function(e) { return e.id !== id; }); save(); editingExpenseId = null; showDetailedExpenses(appData.activeTripId); };
+
+  // ==================== 设置 ====================
+  function renderSettings() {
+    var area = document.getElementById('contentArea');
+    var h = '<div><h3>⚙️ 备份与恢复</h3>';
+    h += '<div class="settings-card"><h3>📤 备份数据</h3><p>导出所有数据为文件</p><button class="btn btn-primary" onclick="backupData()">📥 导出备份</button></div>';
+    h += '<div class="settings-card"><h3>📥 恢复数据</h3><p style="color:#c0392b;">⚠️ 将覆盖当前数据</p><input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="restoreData(event)"><button class="btn btn-info" onclick="document.getElementById(\'restoreFileInput\').click()">📂 选择文件恢复</button></div>';
+    h += '<div class="settings-card"><h3>🔄 重置数据</h3><p>恢复默认设置和预置行程</p><button class="btn btn-danger" onclick="resetData()">🗑️ 重置</button></div></div>';
+    area.innerHTML = h;
+  }
+
+  window.backupData = function() { var data = JSON.stringify(appData, null, 2); var blob = new Blob([data], { type: 'application/json' }); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '自驾乐游天下_备份_' + new Date().toISOString().slice(0,10) + '.json'; a.click(); alert('✅ 备份完成！'); };
+  window.restoreData = function(e) { var file = e.target.files[0]; if (!file) return; var reader = new FileReader(); reader.onload = function(ev) { try { var data = JSON.parse(ev.target.result); if (!data.trips) throw new Error('格式错误'); if (!confirm('⚠️ 确定恢复？当前数据将被覆盖！')) { e.target.value = ''; return; } appData = data; save(); updateTripSelect(); setupDetailTripId = null; summaryDetailTripId = null; editingExpenseId = null; alert('✅ 恢复成功！'); render(); } catch(err) { alert('❌ 文件格式不正确'); } e.target.value = ''; }; reader.readAsText(file); };
+  window.resetData = function() { if (!confirm('⚠️ 确定重置所有数据？')) return; if (!confirm('再次确认？')) return; initDefault(); save(); updateTripSelect(); setupDetailTripId = null; summaryDetailTripId = null; editingExpenseId = null; alert('✅ 已重置'); render(); };
+
+  load(); updateTripSelect();
+  document.getElementById('splashScreen').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
 })();
 </script>
 </body>
