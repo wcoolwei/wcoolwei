@@ -66,6 +66,7 @@
     .btn-danger { background: #f8e0e0; color: #c0392b; }
     .btn-success { background: #d4edda; color: #155724; }
     .btn-info { background: #d1ecf1; color: #0c5460; }
+    .btn-edit { background: #e8f0fe; color: #1a73e8; border: 1px solid #c5d9f7; }
     .btn-share { background: linear-gradient(135deg, #FF9800, #F57C00); color: white; font-weight: 600; }
     .action-row { display: flex; gap: 8px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
     .back-btn { background: none; border: none; color: #8b7355; font-size: 0.85rem; cursor: pointer; padding: 4px 0; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
@@ -83,6 +84,7 @@
     .trip-list-card { background: #faf7f3; border-radius: 16px; padding: 14px; margin-bottom: 10px; border: 1px solid #e7dbce; display: flex; align-items: center; }
     .trip-list-card h3 { color: #4a3729; font-size: 0.95rem; }
     .trip-meta { color: #8b7355; font-size: 0.75rem; }
+    .trip-actions { display: flex; gap: 4px; flex-shrink: 0; margin-left: 8px; }
 
     .expense-form { display: flex; flex-direction: column; gap: 10px; }
     .input-group { display: flex; flex-direction: column; gap: 3px; }
@@ -161,7 +163,7 @@
 })();
 
 (function() {
-  var STORAGE_KEY = 'drive_trip_v14';
+  var STORAGE_KEY = 'drive_trip_v15';
   var appData = { trips: {}, activeTripId: null, globalFamilies: [] };
   var setupDetailTripId = null, summaryDetailTripId = null, editingExpenseId = null, currentTab = 'setup';
 
@@ -284,14 +286,26 @@
     XLSX.writeFile(wb,trip.name+'_费用报表.xlsx'); alert('✅ Excel报表已生成并下载！');
   };
 
+  // 修改出游活动名称
+  window.editTripName = function(tripId) {
+    var trip = appData.trips[tripId];
+    if (!trip) return;
+    var newName = prompt('修改出游活动名称：', trip.name);
+    if (!newName || !newName.trim()) return;
+    trip.name = newName.trim();
+    save();
+    updateTripSelect();
+    render();
+  };
+
   // ==================== 家庭设置 ====================
   function renderSetup() {
     var area = document.getElementById('contentArea');
     if (setupDetailTripId) { renderSetupDetail(setupDetailTripId); return; }
-    var h = '<div><h3 style="color:#5e4432;">👨‍👩‍👧‍👦 出游活动</h3><p style="color:#8b7355;font-size:0.8rem;">点击进入家庭明细，右侧删除</p>';
+    var h = '<div><h3 style="color:#5e4432;">👨‍👩‍👧‍👦 出游活动</h3><p style="color:#8b7355;font-size:0.8rem;">点击进入家庭明细，右侧可编辑或删除</p>';
     var ids = Object.keys(appData.trips);
     if (!ids.length) h += '<div class="empty-message">📌 还没有出游活动</div>';
-    else ids.forEach(function(id) { var t = appData.trips[id]; h += '<div class="trip-list-card"><div onclick="openSetupDetail(\'' + id + '\')" style="flex:1;cursor:pointer;"><h3>🏷️ ' + esc(t.name) + '</h3><div class="trip-meta">' + t.families.length + '家庭·' + t.families.reduce(function(s,f){return s+f.members.length;},0) + '人·' + t.expenses.length + '笔</div></div><button class="btn btn-small btn-danger" onclick="event.stopPropagation();confirmDeleteTrip(\'' + id + '\')">🗑️</button></div>'; });
+    else ids.forEach(function(id) { var t = appData.trips[id]; h += '<div class="trip-list-card"><div onclick="openSetupDetail(\'' + id + '\')" style="flex:1;cursor:pointer;"><h3>🏷️ ' + esc(t.name) + '</h3><div class="trip-meta">' + t.families.length + '家庭·' + t.families.reduce(function(s,f){return s+f.members.length;},0) + '人·' + t.expenses.length + '笔</div></div><div class="trip-actions"><button class="btn btn-small btn-edit" onclick="event.stopPropagation();editTripName(\'' + id + '\')" title="修改名称">✏️</button><button class="btn btn-small btn-danger" onclick="event.stopPropagation();confirmDeleteTrip(\'' + id + '\')" title="删除">🗑️</button></div></div>'; });
     h += '<button class="btn new-trip-btn" onclick="createNewTrip()">➕ 创建新出游（默认三家人）</button></div>';
     area.innerHTML = h;
   }
