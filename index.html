@@ -163,6 +163,7 @@
 })();
 
 (function() {
+  // ⚠️ 请勿修改此KEY，否则会导致本地数据丢失
   var STORAGE_KEY = 'drive_trip_v15';
   var appData = { trips: {}, activeTripId: null, globalFamilies: [] };
   var setupDetailTripId = null, summaryDetailTripId = null, editingExpenseId = null, currentTab = 'setup';
@@ -201,9 +202,16 @@
 
   function load() {
     var s = localStorage.getItem(STORAGE_KEY);
-    if (s) { try { appData = JSON.parse(s); } catch(e) { initDefault(); } } else { initDefault(); }
+    if (s) {
+      // 已有数据，直接使用
+      try { appData = JSON.parse(s); } catch(e) { initDefault(); }
+    } else {
+      // 首次使用，初始化默认数据
+      initDefault();
+    }
     if (!appData.trips) appData.trips = {};
     if (!appData.globalFamilies || !appData.globalFamilies.length) appData.globalFamilies = getDefaultFamilies();
+    // 仅在首次时添加预置行程
     var presetTrips = getPresetTripData();
     Object.keys(presetTrips).forEach(function(key) { if (!appData.trips[key]) appData.trips[key] = presetTrips[key]; });
     if (!appData.activeTripId || !appData.trips[appData.activeTripId]) appData.activeTripId = 'trip_1782115696058';
