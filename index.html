@@ -259,4 +259,474 @@
     } else {
       var familyStats = {}; trip.families.forEach(function(f) { familyStats[f.id] = { name: f.name, adultCount: 0, childCount: 0, members: [] }; });
       (exp.sharedMemberIds || []).forEach(function(mid) { for (var i = 0; i < trip.families.length; i++) { var m = trip.families[i].members.find(function(x) { return x.id === mid; }); if (m) { familyStats[trip.families[i].id].members.push(m.name); if (m.type === 'adult') familyStats[trip.families[i].id].adultCount++; else familyStats[trip.families[i].id].childCount++; break; } } });
-      var parts = []; Object.values(familyStats).forEach(function(fs) { if (fs.members.length > 0) { var countStr = ''; if (fs.adultCount > 0 && fs.childCount > 0) countStr = fs.adultCount + '大' + fs.childCount + '小'; else if (fs.adultCount > 0) countStr = fs.adultCount + '大'; else if (fs.childCount > 0) countStr = fs.childCount + '小'; parts.push(fs.members.join('、') + '(' + c
+      var parts = []; Object.values(familyStats).forEach(function(fs) { if (fs.members.length > 0) { var countStr = ''; if (fs.adultCount > 0 && fs.childCount > 0) countStr = fs.adultCount + '大' + fs.childCount + '小'; else if (fs.adultCount > 0) countStr = fs.adultCount + '大'; else if (fs.childCount > 0) countStr = fs.childCount + '小'; parts.push(fs.members.join('、') + '(' + countStr + ')'); } });
+      return parts.join('；');
+    }
+  }
+
+  // 分享弹窗
+  window.showShareModal = function(tripId) {
+    var old = document.getElementById('shareModalOverlay'); if (old) document.body.removeChild(old);
+    var overlay = document.createElement('div'); overlay.className = 'share-modal-overlay'; overlay.id = 'shareModalOverlay';
+    overlay.innerHTML = '<div class="share-modal"><h3>📤 选择分享方式</h3><div class="share-option" onclick="closeShareModal();shareFullPageScreenshot(\'' + tripId + '\')"><span class="option-icon">📸</span><span class="option-text">长截图分享<br><small style="color:#8b7355;">截取本页全部内容</small></span><span class="option-arrow">›</span></div><div class="share-option" onclick="closeShareModal();exportToExcel(\'' + tripId + '\')"><span class="option-icon">📥</span><span class="option-text">导出Excel<br><small style="color:#8b7355;">生成费用报表文件</small></span><span class="option-arrow">›</span></div><button class="cancel-btn" onclick="closeShareModal()">取消</button></div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeShareModal(); });
+  };
+  window.closeShareModal = function() { var overlay = document.getElementById('shareModalOverlay'); if (overlay) document.body.removeChild(overlay); };
+  window.shareFullPageScreenshot = function(tripId) {
+    var content = document.getElementById('contentArea'); if (!content) return;
+    var originalStyle = content.style.cssText; content.style.overflow = 'visible'; content.style.maxHeight = 'none'; content.style.height = 'auto';
+    html2canvas(content, { scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: true }).then(function(canvas) {
+      content.style.cssText = originalStyle; var url = canvas.toDataURL('image/png'); var a = document.createElement('a'); a.href = url;
+      a.download = (appData.trips[tripId] ? appData.trips[tripId].name : '费用明细') + '_长截图.png'; a.click(); alert('✅ 长截图已生成并下载！');
+    }).catch(function() { content.style.cssText = originalStyle; alert('生成失败，请重试'); });
+  };
+  window.exportToExcel = function(tripId) {
+    var trip = appData.trips[tripId]; if (!trip) return;
+    var wb = XLSX.utils.book_new();
+    var detailData = [['序号','时间','消费地点','费用描述','费用类型','金额','付款家庭','分摊详情']];
+    trip.expenses.forEach(function(e,i) { var payer = trip.families.find(function(f){return f.id===e.paidByFamilyId;}); var typeLabel = e.expenseType === 'split' ? '区分大人/小孩' : (e.expenseType === 'other' ? '其他(3种)' : '统一费用'); detailData.push([i+1,formatDateFull(e.dateTime),e.location||'',e.description,typeLabel,e.amount.toFixed(2),payer?payer.name:'',getShareDisplayText(trip,e)]); });
+    detailData.push(['','','','','合计',trip.expenses.reduce(function(s,e){return s+e.amount;},0).toFixed(2),'','']);
+    var ws1 = XLSX.utils.aoa_to_sheet(detailData); ws1['!cols']=[{wch:5},{wch:18},{wch:16},{wch:20},{wch:14},{wch:10},{wch:12},{wch:50}]; XLSX.utils.book_append_sheet(wb,ws1,'费用明细');
+    var fb = {}; trip.families.forEach(function(f){fb[f.id]={name:f.name,paid:0,shouldPay:0};});
+    trip.expenses.forEach(function(e){if(fb[e.paidByFamilyId])fb[e.paidByFamilyId].paid+=e.amount;if(e.familyShares){Object.keys(e.familyShares).forEach(function(fid){if(fb[fid])fb[fid].shouldPay+=e.familyShares[fid];});}else{var per=e.sharedMemberIds.length?e.amount/e.sharedMemberIds.length:0;var cnt={};e.sharedMemberIds.forEach(function(mid){var fid=mid.split('_')[1];cnt[fid]=(cnt[fid]||0)+1;});Object.keys(cnt).forEach(function(fid){if(fb[fid])fb[fid].shouldPay+=per*cnt[fid];});}});
+    var summaryData = [['家庭名称','已支付金额','应分摊金额','差额','状态']]; Object.values(fb).forEach(function(b){var d=b.paid-b.shouldPay;summaryData.push([b.name,b.paid.toFixed(2),b.shouldPay.toFixed(2),Math.abs(d).toFixed(2),d>=0?'应收':'应付']);});
+    summaryData.push(['合计',Object.values(fb).reduce(function(s,b){return s+b.paid;},0).toFixed(2),Object.values(fb).reduce(function(s,b){return s+b.shouldPay;},0).toFixed(2),'','']);
+    var ws2 = XLSX.utils.aoa_to_sheet(summaryData); ws2['!cols']=[{wch:14},{wch:12},{wch:12},{wch:10},{wch:8}]; XLSX.utils.book_append_sheet(wb,ws2,'家庭汇总');
+    var splitData = [['序号','时间','消费地点','描述','大人单价','小孩单价','其他单价','大人人数','小孩人数','其他人数','金额']];
+    trip.expenses.forEach(function(e,i){if(e.expenseType==='split'||e.expenseType==='other'){splitData.push([i+1,formatDateFull(e.dateTime),e.location||'',e.description,(e.adultPrice||0).toFixed(2),(e.childPrice||0).toFixed(2),(e.otherPrice||0).toFixed(2),(e.adultMemberIds||[]).length,(e.childMemberIds||[]).length,(e.otherMemberIds||[]).length,e.amount.toFixed(2)]);}});
+    if(splitData.length>1){var ws3=XLSX.utils.aoa_to_sheet(splitData);ws3['!cols']=[{wch:5},{wch:18},{wch:16},{wch:20},{wch:10},{wch:10},{wch:10},{wch:8},{wch:8},{wch:8},{wch:10}];XLSX.utils.book_append_sheet(wb,ws3,'区分费用明细');}
+    XLSX.writeFile(wb,trip.name+'_费用报表.xlsx'); alert('✅ Excel报表已生成并下载！');
+  };
+
+  // 修改出游活动名称
+  window.editTripName = function(tripId) {
+    var trip = appData.trips[tripId];
+    if (!trip) return;
+    var newName = prompt('修改出游活动名称：', trip.name);
+    if (!newName || !newName.trim()) return;
+    trip.name = newName.trim();
+    save();
+    updateTripSelect();
+    render();
+  };
+
+  // ==================== 家庭设置 ====================
+  function renderSetup() {
+    var area = document.getElementById('contentArea');
+    if (setupDetailTripId) { renderSetupDetail(setupDetailTripId); return; }
+    var h = '<div><h3 style="color:#5e4432;">👨‍👩‍👧‍👦 出游活动</h3><p style="color:#8b7355;font-size:0.8rem;">点击进入家庭明细，右侧可编辑或删除</p>';
+    var ids = Object.keys(appData.trips);
+    if (!ids.length) h += '<div class="empty-message">📌 还没有出游活动</div>';
+    else ids.forEach(function(id) { var t = appData.trips[id]; h += '<div class="trip-list-card"><div onclick="openSetupDetail(\'' + id + '\')" style="flex:1;cursor:pointer;"><h3>🏷️ ' + esc(t.name) + '</h3><div class="trip-meta">' + t.families.length + '家庭·' + t.families.reduce(function(s,f){return s+f.members.length;},0) + '人·' + t.expenses.length + '笔</div></div><div class="trip-actions"><button class="btn btn-small btn-edit" onclick="event.stopPropagation();editTripName(\'' + id + '\')" title="修改名称">✏️</button><button class="btn btn-small btn-danger" onclick="event.stopPropagation();confirmDeleteTrip(\'' + id + '\')" title="删除">🗑️</button></div></div>'; });
+    h += '<button class="btn new-trip-btn" onclick="createNewTrip()">➕ 创建新出游（默认三家人）</button></div>';
+    area.innerHTML = h;
+  }
+
+  window.confirmDeleteTrip = function(tripId) {
+    var trip = appData.trips[tripId]; if (!trip) return;
+    if (!confirm('⚠️ 确定删除 "' + trip.name + '"？\n\n❌ 不可恢复！')) return;
+    if (!confirm('再次确认删除？')) return;
+    delete appData.trips[tripId];
+    if (appData.activeTripId === tripId) appData.activeTripId = null;
+    setupDetailTripId = null; summaryDetailTripId = null; editingExpenseId = null;
+    save(); updateTripSelect(); render();
+  };
+
+  window.openSetupDetail = function(id) { setupDetailTripId = id; appData.activeTripId = id; updateTripSelect(); save(); renderSetupDetail(id); };
+
+  function renderSetupDetail(id) {
+    var area = document.getElementById('contentArea'); var trip = appData.trips[id]; if (!trip) { setupDetailTripId = null; renderSetup(); return; }
+    var h = '<div><button class="back-btn" onclick="setupDetailTripId=null;renderSetup();">← 返回</button><h3>' + esc(trip.name) + ' - 家庭明细</h3><div class="family-setup">';
+    trip.families.forEach(function(f) {
+      h += '<div class="family-card"><div class="family-header"><input class="family-name-input" value="' + esc(f.name) + '" onchange="updateFamilyName(\'' + f.id + '\',this.value)"><button class="btn-outline btn-small btn-danger" onclick="removeFamily(\'' + f.id + '\')">移除</button></div><div class="member-list">';
+      f.members.forEach(function(m) {
+        h += '<div class="member-row"><span class="member-tag">' + (m.type === 'adult' ? '👤大人' : '👶小孩') + '</span><input class="member-name-input" value="' + esc(m.name) + '" onchange="updateMemberName(\'' + f.id + '\',\'' + m.id + '\',this.value)"><div class="sort-btns"><button class="sort-btn" onclick="moveMember(\'' + f.id + '\',\'' + m.id + '\',-1)">▲</button><button class="sort-btn" onclick="moveMember(\'' + f.id + '\',\'' + m.id + '\',1)">▼</button></div><button class="btn-outline btn-small" onclick="removeMember(\'' + f.id + '\',\'' + m.id + '\')">✕</button></div>';
+      });
+      h += '</div><div style="display:flex;gap:6px;margin-top:6px;"><button class="btn btn-small" onclick="addMember(\'' + f.id + '\',\'adult\')">+大人</button><button class="btn btn-small" onclick="addMember(\'' + f.id + '\',\'child\')">+小孩</button></div></div>';
+    });
+    h += '<div class="action-row"><button class="btn btn-primary" onclick="addFamilyToTrip(\'' + id + '\')">➕ 添加家庭</button><button class="btn" onclick="saveTripFamilies()">💾 保存</button></div></div></div>';
+    area.innerHTML = h;
+  }
+
+  window.moveMember = function(fid, mid, dir) { var trip = getTrip(); if (!trip) return; var fam = trip.families.find(function(f) { return f.id === fid; }); if (!fam) return; var idx = fam.members.findIndex(function(m) { return m.id === mid; }); if (idx === -1 || (dir === -1 && idx === 0) || (dir === 1 && idx === fam.members.length - 1)) return; var tmp = fam.members[idx]; fam.members[idx] = fam.members[idx + dir]; fam.members[idx + dir] = tmp; save(); renderSetupDetail(appData.activeTripId); };
+  window.saveTripFamilies = function() { save(); alert('已保存'); };
+  window.addFamilyToTrip = function(id) { var trip = appData.trips[id]; if (!trip) return; var name = prompt('家庭名称：', '新家庭'); if (!name || !name.trim()) return; var nid = 'f' + Date.now(); var nf = { id: nid, name: name.trim(), members: [{id:'m_'+nid+'_0',type:'adult',name:'成员1'},{id:'m_'+nid+'_1',type:'adult',name:'成员2'}] }; trip.families.push(nf); appData.globalFamilies.push(JSON.parse(JSON.stringify(nf))); save(); renderSetupDetail(id); };
+  window.removeFamily = function(fid) { var trip = getTrip(); if (!trip || trip.families.length <= 1) { alert('至少保留一个家庭'); return; } trip.families = trip.families.filter(function(f) { return f.id !== fid; }); appData.globalFamilies = appData.globalFamilies.filter(function(f) { return f.id !== fid; }); trip.expenses = trip.expenses.filter(function(e) { return e.paidByFamilyId !== fid; }); save(); renderSetupDetail(appData.activeTripId); };
+  window.addMember = function(fid, type) { var trip = getTrip(); if (!trip) return; var fam = trip.families.find(function(f) { return f.id === fid; }); if (!fam) return; var name = prompt('姓名：', type === 'adult' ? '新大人' : '新小孩'); if (!name || !name.trim()) return; fam.members.push({ id: 'm_' + fid + '_' + Date.now(), type: type, name: name.trim() }); save(); renderSetupDetail(appData.activeTripId); };
+  window.removeMember = function(fid, mid) { var trip = getTrip(); if (!trip) return; var fam = trip.families.find(function(f) { return f.id === fid; }); if (!fam || fam.members.length <= 1) { alert('至少一人'); return; } fam.members = fam.members.filter(function(m) { return m.id !== mid; }); trip.expenses = trip.expenses.filter(function(e) { return !e.sharedMemberIds.includes(mid); }); save(); renderSetupDetail(appData.activeTripId); };
+  window.updateFamilyName = function(fid, name) { if (!name.trim()) return; var trip = getTrip(); if (!trip) return; var f = trip.families.find(function(x) { return x.id === fid; }); if (f) f.name = name.trim(); save(); };
+  window.updateMemberName = function(fid, mid, name) { if (!name.trim()) return; var trip = getTrip(); if (!trip) return; var fam = trip.families.find(function(x) { return x.id === fid; }); if (!fam) return; var m = fam.members.find(function(x) { return x.id === mid; }); if (m) m.name = name.trim(); save(); };
+
+  // ==================== 记账页面 ====================
+  function renderExpense() {
+    var area = document.getElementById('contentArea');
+    var trip = getTrip();
+    if (!trip) { area.innerHTML = '<div class="empty-message">📌 请先选择出游活动</div>'; return; }
+
+    var allMembers = getAllMembersFlat(trip);
+    var childMembers = getChildMembersFlat(trip);
+
+    var h = '<div class="expense-form"><div style="font-weight:600;color:#5e4432;">🧾 ' + esc(trip.name) + ' - 记一笔</div>';
+    h += '<div class="input-group"><label>📍 消费地点</label><input class="input-field" id="expLocation" placeholder="海边餐厅、景区门口"></div>';
+    h += '<div class="input-group"><label>📂 费用类型</label><select class="input-field" id="expenseType" onchange="toggleExpenseType(\'new\')"><option value="unified">💰 统一费用（所有人相同）</option><option value="split">👤👶 区分大人/小孩（单价不同）</option><option value="other">🔢 其他（3种收费方式）</option></select></div>';
+    h += '<div class="input-group"><label>📝 描述</label><input class="input-field" id="expDesc" placeholder="午餐、门票"></div>';
+
+    // 统一费用区域
+    h += '<div id="unifiedSection_new">';
+    h += '<div class="input-group"><label>💰 总金额</label><input class="input-field" type="number" id="expAmount" placeholder="0.00" step="0.01"></div>';
+    h += '<div class="input-group"><label>✅ 均摊人员</label>';
+    h += '<div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'personCheckboxList_new\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'personCheckboxList_new\')">全不选</button></div>';
+    h += '<div class="checkbox-list" id="personCheckboxList_new">' + allMembers.map(function(m) { return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '" checked> ' + esc(m.familyName) + '·' + esc(m.name) + ' (' + (m.type === 'adult' ? '大人' : '小孩') + ')</label>'; }).join('') + '</div></div>';
+    h += '</div>';
+
+    // 区分大人/小孩区域
+    h += '<div id="splitSection_new" style="display:none;">';
+    h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👤 按大人收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'adultCheckboxList_new\',\'updateSplitTotal_new\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'adultCheckboxList_new\',\'updateSplitTotal_new\')">全不选</button></div></div>';
+    h += '<div class="hint-text">勾选所有按大人单价收费的人员（含身高超标的儿童）</div>';
+    h += '<div class="input-group"><label>大人单价（元/人）</label><input class="input-field" type="number" id="adultPrice_new" placeholder="0.00" step="0.01" oninput="updateSplitTotal_new()"></div>';
+    h += '<div class="checkbox-list" id="adultCheckboxList_new">' + allMembers.map(function(m) { return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '"' + (m.type === 'adult' ? ' checked' : '') + ' onchange="updateSplitTotal_new()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (' + (m.type === 'adult' ? '大人' : '小孩') + ')</label>'; }).join('') + '</div>';
+    h += '<div class="subtotal-text">已选 <strong id="adultSelectedCount_new">' + allMembers.filter(function(m){return m.type==='adult';}).length + '</strong> 人，小计：<strong id="adultSubtotal_new">¥0.00</strong></div></div>';
+
+    h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👶 按小孩收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'childCheckboxList_new\',\'updateSplitTotal_new\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'childCheckboxList_new\',\'updateSplitTotal_new\')">全不选</button></div></div>';
+    h += '<div class="hint-text">勾选按小孩单价收费的儿童</div>';
+    h += '<div class="input-group"><label>小孩单价（元/人）</label><input class="input-field" type="number" id="childPrice_new" placeholder="0.00" step="0.01" oninput="updateSplitTotal_new()"></div>';
+    h += '<div class="checkbox-list" id="childCheckboxList_new">' + childMembers.map(function(m) { return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '" checked onchange="updateSplitTotal_new()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (小孩)</label>'; }).join('') + '</div>';
+    h += '<div class="subtotal-text">已选 <strong id="childSelectedCount_new">' + childMembers.length + '</strong> 人，小计：<strong id="childSubtotal_new">¥0.00</strong></div></div>';
+    h += '<div class="total-text">总计：<span id="splitTotal_new">¥0.00</span></div>';
+    h += '<div style="background:#faf7f3;border-radius:16px;padding:10px;font-size:0.75rem;color:#7b6452;">💡 区分模式将按<strong>家庭</strong>自动均摊</div>';
+    h += '</div>';
+
+    // 其他（3种收费方式）区域
+    h += '<div id="otherSection_new" style="display:none;">';
+    h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👤 按大人收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'otherAdultCheckboxList_new\',\'updateOtherTotal_new\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'otherAdultCheckboxList_new\',\'updateOtherTotal_new\')">全不选</button></div></div>';
+    h += '<div class="hint-text">勾选所有按大人单价收费的人员</div>';
+    h += '<div class="input-group"><label>大人单价（元/人）</label><input class="input-field" type="number" id="otherAdultPrice_new" placeholder="0.00" step="0.01" oninput="updateOtherTotal_new()"></div>';
+    h += '<div class="checkbox-list" id="otherAdultCheckboxList_new">' + allMembers.map(function(m) { return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '"' + (m.type === 'adult' ? ' checked' : '') + ' onchange="updateOtherTotal_new()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (' + (m.type === 'adult' ? '大人' : '小孩') + ')</label>'; }).join('') + '</div>';
+    h += '<div class="subtotal-text">已选 <strong id="otherAdultSelectedCount_new">' + allMembers.filter(function(m){return m.type==='adult';}).length + '</strong> 人，小计：<strong id="otherAdultSubtotal_new">¥0.00</strong></div></div>';
+
+    h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👶 按小孩收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'otherChildCheckboxList_new\',\'updateOtherTotal_new\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'otherChildCheckboxList_new\',\'updateOtherTotal_new\')">全不选</button></div></div>';
+    h += '<div class="hint-text">勾选按小孩单价收费的儿童</div>';
+    h += '<div class="input-group"><label>小孩单价（元/人）</label><input class="input-field" type="number" id="otherChildPrice_new" placeholder="0.00" step="0.01" oninput="updateOtherTotal_new()"></div>';
+    h += '<div class="checkbox-list" id="otherChildCheckboxList_new">' + childMembers.map(function(m) { return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '" checked onchange="updateOtherTotal_new()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (小孩)</label>'; }).join('') + '</div>';
+    h += '<div class="subtotal-text">已选 <strong id="otherChildSelectedCount_new">' + childMembers.length + '</strong> 人，小计：<strong id="otherChildSubtotal_new">¥0.00</strong></div></div>';
+
+    h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>🔘 按其他收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'otherOtherCheckboxList_new\',\'updateOtherTotal_new\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'otherOtherCheckboxList_new\',\'updateOtherTotal_new\')">全不选</button></div></div>';
+    h += '<div class="hint-text">勾选按其他单价收费的人员</div>';
+    h += '<div class="input-group"><label>其他单价（元/人）</label><input class="input-field" type="number" id="otherOtherPrice_new" placeholder="0.00" step="0.01" oninput="updateOtherTotal_new()"></div>';
+    h += '<div class="checkbox-list" id="otherOtherCheckboxList_new">' + allMembers.map(function(m) { return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '" onchange="updateOtherTotal_new()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (' + (m.type === 'adult' ? '大人' : '小孩') + ')</label>'; }).join('') + '</div>';
+    h += '<div class="subtotal-text">已选 <strong id="otherOtherSelectedCount_new">0</strong> 人，小计：<strong id="otherOtherSubtotal_new">¥0.00</strong></div></div>';
+
+    h += '<div class="total-text">总计：<span id="otherTotal_new">¥0.00</span></div>';
+    h += '<div style="background:#faf7f3;border-radius:16px;padding:10px;font-size:0.75rem;color:#7b6452;">💡 其他模式将按<strong>家庭</strong>自动均摊</div>';
+    h += '</div>';
+
+    h += '<div class="input-group"><label>📅 消费时间</label><input class="input-field" type="datetime-local" id="expDateTime" value="' + getCurrentDateTime() + '"></div>';
+    h += '<div class="input-group"><label>👤 付款家庭</label><select class="input-field" id="expPayer">' + trip.families.map(function(f) { return '<option value="' + f.id + '">' + esc(f.name) + '</option>'; }).join('') + '</select></div>';
+    h += '<button class="btn btn-primary" style="width:100%;" onclick="addExpense()">➕ 记录费用</button></div>';
+
+    if (trip.expenses.length > 0) {
+      h += '<hr><div style="font-weight:500;">📋 最近记录</div>';
+      trip.expenses.slice().reverse().slice(0, 5).forEach(function(exp) {
+        var payer = trip.families.find(function(f) { return f.id === exp.paidByFamilyId; });
+        h += '<div style="background:#faf7f3;border-radius:12px;padding:8px;margin:6px 0;font-size:0.8rem;"><strong>' + esc(exp.description) + '</strong> ¥' + exp.amount.toFixed(2) + ' <span style="color:#8b7355;">(' + (payer ? payer.name : '未知') + ')</span>';
+        h += '<div style="color:#aa8e7a;font-size:0.7rem;">' + getShareDisplayText(trip, exp) + ' · ' + formatDateFull(exp.dateTime) + '</div></div>';
+      });
+    }
+    area.innerHTML = h;
+  }
+
+  window.toggleExpenseType = function(prefix) {
+    var unified = document.getElementById('unifiedSection_' + prefix);
+    var split = document.getElementById('splitSection_' + prefix);
+    var other = document.getElementById('otherSection_' + prefix);
+    var type = document.getElementById('expenseType' + (prefix === 'edit' ? '_edit' : ''));
+    if (!type) { unified.style.display = 'block'; split.style.display = 'none'; if(other) other.style.display = 'none'; return; }
+    if (type.value === 'unified') {
+      unified.style.display = 'block'; split.style.display = 'none'; if(other) other.style.display = 'none';
+    } else if (type.value === 'split') {
+      unified.style.display = 'none'; split.style.display = 'block'; if(other) other.style.display = 'none';
+      if (prefix === 'new') updateSplitTotal_new(); else if (prefix === 'edit') updateSplitTotal_edit();
+    } else if (type.value === 'other') {
+      unified.style.display = 'none'; split.style.display = 'none'; if(other) other.style.display = 'block';
+      if (prefix === 'new') updateOtherTotal_new(); else if (prefix === 'edit') updateOtherTotal_edit();
+    }
+  };
+
+  window.updateSplitTotal_new = function() {
+    var ap = parseFloat(document.getElementById('adultPrice_new').value) || 0;
+    var cp = parseFloat(document.getElementById('childPrice_new').value) || 0;
+    var ac = document.querySelectorAll('#adultCheckboxList_new input:checked').length;
+    var cc = document.querySelectorAll('#childCheckboxList_new input:checked').length;
+    var as = ap * ac, cs = cp * cc;
+    document.getElementById('adultSelectedCount_new').textContent = ac;
+    document.getElementById('childSelectedCount_new').textContent = cc;
+    document.getElementById('adultSubtotal_new').textContent = '¥' + as.toFixed(2);
+    document.getElementById('childSubtotal_new').textContent = '¥' + cs.toFixed(2);
+    document.getElementById('splitTotal_new').textContent = '¥' + (as + cs).toFixed(2);
+  };
+
+  window.updateOtherTotal_new = function() {
+    var ap = parseFloat(document.getElementById('otherAdultPrice_new').value) || 0;
+    var cp = parseFloat(document.getElementById('otherChildPrice_new').value) || 0;
+    var op = parseFloat(document.getElementById('otherOtherPrice_new').value) || 0;
+    var ac = document.querySelectorAll('#otherAdultCheckboxList_new input:checked').length;
+    var cc = document.querySelectorAll('#otherChildCheckboxList_new input:checked').length;
+    var oc = document.querySelectorAll('#otherOtherCheckboxList_new input:checked').length;
+    var as = ap * ac, cs = cp * cc, os = op * oc;
+    document.getElementById('otherAdultSelectedCount_new').textContent = ac;
+    document.getElementById('otherChildSelectedCount_new').textContent = cc;
+    document.getElementById('otherOtherSelectedCount_new').textContent = oc;
+    document.getElementById('otherAdultSubtotal_new').textContent = '¥' + as.toFixed(2);
+    document.getElementById('otherChildSubtotal_new').textContent = '¥' + cs.toFixed(2);
+    document.getElementById('otherOtherSubtotal_new').textContent = '¥' + os.toFixed(2);
+    document.getElementById('otherTotal_new').textContent = '¥' + (as + cs + os).toFixed(2);
+  };
+
+  window.updateSplitTotal_edit = function() {
+    var ap = parseFloat(document.getElementById('adultPrice_edit').value) || 0;
+    var cp = parseFloat(document.getElementById('childPrice_edit').value) || 0;
+    var ac = document.querySelectorAll('#adultCheckboxList_edit input:checked').length;
+    var cc = document.querySelectorAll('#childCheckboxList_edit input:checked').length;
+    var as = ap * ac, cs = cp * cc;
+    document.getElementById('adultSelectedCount_edit').textContent = ac;
+    document.getElementById('childSelectedCount_edit').textContent = cc;
+    document.getElementById('adultSubtotal_edit').textContent = '¥' + as.toFixed(2);
+    document.getElementById('childSubtotal_edit').textContent = '¥' + cs.toFixed(2);
+    document.getElementById('splitTotal_edit').textContent = '¥' + (as + cs).toFixed(2);
+  };
+
+  window.updateOtherTotal_edit = function() {
+    var ap = parseFloat(document.getElementById('otherAdultPrice_edit').value) || 0;
+    var cp = parseFloat(document.getElementById('otherChildPrice_edit').value) || 0;
+    var op = parseFloat(document.getElementById('otherOtherPrice_edit').value) || 0;
+    var ac = document.querySelectorAll('#otherAdultCheckboxList_edit input:checked').length;
+    var cc = document.querySelectorAll('#otherChildCheckboxList_edit input:checked').length;
+    var oc = document.querySelectorAll('#otherOtherCheckboxList_edit input:checked').length;
+    var as = ap * ac, cs = cp * cc, os = op * oc;
+    document.getElementById('otherAdultSelectedCount_edit').textContent = ac;
+    document.getElementById('otherChildSelectedCount_edit').textContent = cc;
+    document.getElementById('otherOtherSelectedCount_edit').textContent = oc;
+    document.getElementById('otherAdultSubtotal_edit').textContent = '¥' + as.toFixed(2);
+    document.getElementById('otherChildSubtotal_edit').textContent = '¥' + cs.toFixed(2);
+    document.getElementById('otherOtherSubtotal_edit').textContent = '¥' + os.toFixed(2);
+    document.getElementById('otherTotal_edit').textContent = '¥' + (as + cs + os).toFixed(2);
+  };
+
+  function calculateFamilyShares(trip, expenseType, adultPrice, childPrice, otherPrice, adultMemberIds, childMemberIds, otherMemberIds) {
+    var familyShares = {};
+    trip.families.forEach(function(f) { familyShares[f.id] = 0; });
+    trip.families.forEach(function(f) {
+      var ft = 0;
+      f.members.forEach(function(m) {
+        if (adultMemberIds && adultMemberIds.indexOf(m.id) !== -1) ft += (adultPrice || 0);
+        if (childMemberIds && childMemberIds.indexOf(m.id) !== -1) ft += (childPrice || 0);
+        if (otherMemberIds && otherMemberIds.indexOf(m.id) !== -1) ft += (otherPrice || 0);
+      });
+      familyShares[f.id] = ft;
+    });
+    return familyShares;
+  }
+
+  window.addExpense = function() {
+    var trip = getTrip(); if (!trip) return;
+    var loc = document.getElementById('expLocation').value.trim();
+    var expenseType = document.getElementById('expenseType').value;
+    var desc = document.getElementById('expDesc').value.trim();
+    var payer = document.getElementById('expPayer').value;
+    var dt = document.getElementById('expDateTime').value;
+    if (!desc) return alert('请输入描述'); if (!dt) return alert('请选择时间');
+    var amount = 0, adultPrice = 0, childPrice = 0, otherPrice = 0, adultMemberIds = [], childMemberIds = [], otherMemberIds = [], sharedMemberIds = [], sharedFamilyIds = [], familyShares = {};
+    if (expenseType === 'unified') {
+      amount = parseFloat(document.getElementById('expAmount').value);
+      if (isNaN(amount) || amount <= 0) return alert('请输入有效金额');
+      var cbs = document.querySelectorAll('#personCheckboxList_new input:checked');
+      if (cbs.length === 0) return alert('请选择均摊人员');
+      sharedMemberIds = Array.from(cbs).map(function(c) { return c.value; });
+      trip.families.forEach(function(f) { familyShares[f.id] = 0; });
+      var perPerson = amount / sharedMemberIds.length;
+      sharedMemberIds.forEach(function(mid) { var fid = mid.split('_')[1]; if (familyShares[fid] !== undefined) familyShares[fid] += perPerson; });
+      sharedFamilyIds = Object.keys(familyShares).filter(function(fid) { return familyShares[fid] > 0; });
+    } else if (expenseType === 'split') {
+      adultPrice = parseFloat(document.getElementById('adultPrice_new').value) || 0;
+      childPrice = parseFloat(document.getElementById('childPrice_new').value) || 0;
+      adultMemberIds = Array.from(document.querySelectorAll('#adultCheckboxList_new input:checked')).map(function(cb) { return cb.value; });
+      childMemberIds = Array.from(document.querySelectorAll('#childCheckboxList_new input:checked')).map(function(cb) { return cb.value; });
+      if (!adultMemberIds.length && !childMemberIds.length) return alert('请选择参与的人员');
+      amount = adultPrice * adultMemberIds.length + childPrice * childMemberIds.length;
+      if (amount <= 0) return alert('请输入有效单价');
+      familyShares = calculateFamilyShares(trip, 'split', adultPrice, childPrice, 0, adultMemberIds, childMemberIds, []);
+      sharedFamilyIds = Object.keys(familyShares).filter(function(fid) { return familyShares[fid] > 0; });
+      trip.families.forEach(function(f) { if (familyShares[f.id] > 0) { f.members.forEach(function(m) { sharedMemberIds.push(m.id); }); } });
+    } else if (expenseType === 'other') {
+      adultPrice = parseFloat(document.getElementById('otherAdultPrice_new').value) || 0;
+      childPrice = parseFloat(document.getElementById('otherChildPrice_new').value) || 0;
+      otherPrice = parseFloat(document.getElementById('otherOtherPrice_new').value) || 0;
+      adultMemberIds = Array.from(document.querySelectorAll('#otherAdultCheckboxList_new input:checked')).map(function(cb) { return cb.value; });
+      childMemberIds = Array.from(document.querySelectorAll('#otherChildCheckboxList_new input:checked')).map(function(cb) { return cb.value; });
+      otherMemberIds = Array.from(document.querySelectorAll('#otherOtherCheckboxList_new input:checked')).map(function(cb) { return cb.value; });
+      if (!adultMemberIds.length && !childMemberIds.length && !otherMemberIds.length) return alert('请选择参与的人员');
+      amount = adultPrice * adultMemberIds.length + childPrice * childMemberIds.length + otherPrice * otherMemberIds.length;
+      if (amount <= 0) return alert('请输入有效单价');
+      familyShares = calculateFamilyShares(trip, 'other', adultPrice, childPrice, otherPrice, adultMemberIds, childMemberIds, otherMemberIds);
+      sharedFamilyIds = Object.keys(familyShares).filter(function(fid) { return familyShares[fid] > 0; });
+      trip.families.forEach(function(f) { if (familyShares[f.id] > 0) { f.members.forEach(function(m) { sharedMemberIds.push(m.id); }); } });
+    }
+    trip.expenses.push({
+      id: 'e' + Date.now(), location: loc, description: desc, amount: amount, expenseType: expenseType,
+      adultPrice: adultPrice, childPrice: childPrice, otherPrice: otherPrice,
+      adultMemberIds: adultMemberIds, childMemberIds: childMemberIds, otherMemberIds: otherMemberIds,
+      paidByFamilyId: payer, sharedMemberIds: sharedMemberIds, sharedFamilyIds: sharedFamilyIds, familyShares: familyShares,
+      dateTime: new Date(dt).toISOString()
+    });
+    save(); renderExpense();
+  };
+
+  // ==================== 费用明细 ====================
+  function renderSummary() {
+    var area = document.getElementById('contentArea');
+    if (editingExpenseId) { renderExpenseEdit(editingExpenseId); return; }
+    if (summaryDetailTripId) { renderTripDetail(summaryDetailTripId); return; }
+    var h = '<div><h3>📊 出游总览</h3><p style="color:#8b7355;font-size:0.8rem;">点击查看各家费用</p>';
+    var ids = Object.keys(appData.trips);
+    if (!ids.length) h += '<div class="empty-message">✨ 还没有出游活动</div>';
+    else ids.forEach(function(id) { var t = appData.trips[id]; h += '<div class="trip-overview-card" onclick="showTripDetail(\'' + id + '\')"><h3>🏷️ ' + esc(t.name) + '</h3><div class="trip-total">¥' + t.expenses.reduce(function(s,e){return s+e.amount;},0).toFixed(2) + '</div><span style="color:#8b7355;">' + t.expenses.length + '笔·' + t.families.length + '家庭</span></div>'; });
+    h += '</div>'; area.innerHTML = h;
+  }
+
+  window.showTripDetail = function(id) { summaryDetailTripId = id; appData.activeTripId = id; editingExpenseId = null; updateTripSelect(); save(); renderTripDetail(id); };
+
+  function renderTripDetail(id) {
+    var area = document.getElementById('contentArea'); var trip = appData.trips[id]; if (!trip) { summaryDetailTripId = null; renderSummary(); return; }
+    var fb = {}; trip.families.forEach(function(f) { fb[f.id] = { name: f.name, paid: 0, shouldPay: 0 }; });
+    trip.expenses.forEach(function(e) {
+      if (fb[e.paidByFamilyId]) fb[e.paidByFamilyId].paid += e.amount;
+      if (e.familyShares) { Object.keys(e.familyShares).forEach(function(fid) { if (fb[fid]) fb[fid].shouldPay += e.familyShares[fid]; }); }
+      else { var per = e.sharedMemberIds.length ? e.amount / e.sharedMemberIds.length : 0; var cnt = {}; e.sharedMemberIds.forEach(function(mid) { var fid = mid.split('_')[1]; cnt[fid] = (cnt[fid] || 0) + 1; }); Object.keys(cnt).forEach(function(fid) { if (fb[fid]) fb[fid].shouldPay += per * cnt[fid]; }); }
+    });
+    var h = '<div><button class="back-btn" onclick="summaryDetailTripId=null;renderSummary();">← 返回</button><h3>' + esc(trip.name) + '</h3>';
+    if (!trip.expenses.length) h += '<div class="empty-message">✨ 还没有费用</div>';
+    else { h += '<div class="trip-total">总支出: ¥' + trip.expenses.reduce(function(s,e){return s+e.amount;},0).toFixed(2) + '</div>'; Object.values(fb).forEach(function(b) { var d = b.paid - b.shouldPay; h += '<div class="summary-card"><h4>' + esc(b.name) + '</h4><div class="balance-row"><span>已支付</span><span>¥' + b.paid.toFixed(2) + '</span></div><div class="balance-row"><span>应分摊</span><span>¥' + b.shouldPay.toFixed(2) + '</span></div><div class="balance-row"><strong>' + (d >= 0 ? '应收' : '应付') + '</strong><strong class="total-amount">¥' + Math.abs(d).toFixed(2) + '</strong></div></div>'; }); h += '<div class="action-row"><button class="btn btn-primary" style="flex:1;" onclick="showDetailedExpenses(\'' + id + '\')">📋 查看明细</button><button class="btn btn-share" style="flex:1;margin-left:6px;" onclick="showShareModal(\'' + id + '\')">📤 分享</button></div>'; }
+    h += '</div>'; area.innerHTML = h;
+  }
+
+  window.showDetailedExpenses = function(id) {
+    var area = document.getElementById('contentArea'); var trip = appData.trips[id]; if (!trip) return;
+    var h = '<div><button class="back-btn" onclick="showTripDetail(\'' + id + '\')">← 返回</button><h3>📋 详细清单</h3>';
+    if (!trip.expenses.length) h += '<div class="empty-message">暂无记录</div>';
+    else {
+      h += '<div id="shareArea" class="share-img-container"><h4 style="text-align:center;">' + esc(trip.name) + ' - 费用明细</h4><table class="detail-table"><tr><th>时间</th><th>地点</th><th>描述</th><th>金额</th><th>付款方</th><th>分摊详情</th></tr>';
+      trip.expenses.forEach(function(e) { var payer = trip.families.find(function(f) { return f.id === e.paidByFamilyId; }); var shareText = getShareDisplayText(trip, e); var typeLabel = e.expenseType === 'split' ? ' [区分]' : (e.expenseType === 'other' ? ' [其他]' : ''); h += '<tr><td>' + formatDateFull(e.dateTime) + '</td><td>' + esc(e.location || '-') + '</td><td>' + esc(e.description) + typeLabel + '</td><td>¥' + e.amount.toFixed(2) + '</td><td>' + (payer ? payer.name : '未知') + '</td><td style="font-size:0.7rem;">' + shareText + '</td></tr>'; });
+      h += '</table></div><hr><div style="font-weight:500;">✏️ 点击费用可编辑</div>';
+      trip.expenses.slice().sort(function(a,b){return new Date(b.dateTime)-new Date(a.dateTime);}).forEach(function(e) { var payer = trip.families.find(function(f){return f.id===e.paidByFamilyId;}); var typeBadge = e.expenseType === 'split' ? ' <span style="background:#fff3cd;padding:1px 5px;border-radius:8px;font-size:0.6rem;">区分</span>' : (e.expenseType === 'other' ? ' <span style="background:#e8f0fe;padding:1px 5px;border-radius:8px;font-size:0.6rem;">其他</span>' : ''); h += '<div class="expense-list-item" onclick="openExpenseEdit(\'' + id + '\',\'' + e.id + '\')"><div class="expense-info"><strong>' + esc(e.description) + '</strong>' + typeBadge + ' · ¥' + e.amount.toFixed(2) + '<div class="expense-meta">' + formatDateFull(e.dateTime) + ' | ' + (payer?payer.name:'未知') + '</div></div><span>›</span></div>'; });
+      h += '<button class="btn btn-share" style="width:100%;margin-top:8px;" onclick="showShareModal(\'' + id + '\')">📤 分享</button>';
+    }
+    h += '</div>'; area.innerHTML = h;
+  };
+
+  window.openExpenseEdit = function(tripId, expenseId) { editingExpenseId = expenseId; appData.activeTripId = tripId; save(); renderExpenseEdit(expenseId); };
+
+  function renderExpenseEdit(expenseId) {
+    var area = document.getElementById('contentArea'); var trip = getTrip(); if (!trip) { editingExpenseId = null; renderSummary(); return; }
+    var exp = trip.expenses.find(function(e) { return e.id === expenseId; }); if (!exp) { editingExpenseId = null; showDetailedExpenses(appData.activeTripId); return; }
+    var allMembers = getAllMembersFlat(trip); var childMembers = getChildMembersFlat(trip);
+    var h = '<div><button class="back-btn" onclick="editingExpenseId=null;showDetailedExpenses(\'' + appData.activeTripId + '\')">← 返回</button><h3>✏️ 编辑费用</h3><div class="expense-form">';
+    h += '<div class="input-group"><label>📍 地点</label><input class="input-field" id="editLocation" value="' + esc(exp.location || '') + '"></div>';
+    h += '<div class="input-group"><label>📂 类型</label><select class="input-field" id="expenseType_edit" onchange="toggleExpenseType(\'edit\')"><option value="unified"' + (exp.expenseType === 'unified' ? ' selected' : '') + '>💰 统一费用</option><option value="split"' + (exp.expenseType === 'split' ? ' selected' : '') + '>👤👶 区分大人/小孩</option><option value="other"' + (exp.expenseType === 'other' ? ' selected' : '') + '>🔢 其他（3种收费方式）</option></select></div>';
+    h += '<div class="input-group"><label>📝 描述</label><input class="input-field" id="editDesc" value="' + esc(exp.description) + '"></div>';
+
+    // 统一费用
+    h += '<div id="unifiedSection_edit"' + (exp.expenseType === 'split' || exp.expenseType === 'other' ? ' style="display:none;"' : '') + '><div class="input-group"><label>💰 总金额</label><input class="input-field" type="number" id="editAmount" value="' + exp.amount + '" step="0.01"></div><div class="input-group"><label>✅ 均摊人员</label><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'personCheckboxList_edit\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'personCheckboxList_edit\')">全不选</button></div><div class="checkbox-list" id="personCheckboxList_edit">' + allMembers.map(function(m) { var checked = exp.sharedMemberIds.includes(m.id) ? ' checked' : ''; return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '"' + checked + '> ' + esc(m.familyName) + '·' + esc(m.name) + ' (' + (m.type === 'adult' ? '大人' : '小孩') + ')</label>'; }).join('') + '</div></div></div>';
+
+    // 区分大人/小孩
+    h += '<div id="splitSection_edit"' + (exp.expenseType === 'split' ? ' style="display:block;"' : ' style="display:none;"') + '>';
+    h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👤 按大人收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'adultCheckboxList_edit\',\'updateSplitTotal_edit\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'adultCheckboxList_edit\',\'updateSplitTotal_edit\')">全不选</button></div></div><div class="input-group"><label>大人单价</label><input class="input-field" type="number" id="adultPrice_edit" value="' + (exp.adultPrice || 0) + '" step="0.01" oninput="updateSplitTotal_edit()"></div><div class="checkbox-list" id="adultCheckboxList_edit">' + allMembers.map(function(m) { var checked = exp.adultMemberIds && exp.adultMemberIds.includes(m.id) ? ' checked' : ''; return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '"' + checked + ' onchange="updateSplitTotal_edit()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (' + (m.type === 'adult' ? '大人' : '小孩') + ')</label>'; }).join('') + '</div><div class="subtotal-text">已选 <strong id="adultSelectedCount_edit">' + (exp.adultMemberIds ? exp.adultMemberIds.length : 0) + '</strong> 人，小计：<strong id="adultSubtotal_edit">¥' + ((exp.adultPrice || 0) * (exp.adultMemberIds ? exp.adultMemberIds.length : 0)).toFixed(2) + '</strong></div></div>';
+    h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👶 按小孩收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'childCheckboxList_edit\',\'updateSplitTotal_edit\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'childCheckboxList_edit\',\'updateSplitTotal_edit\')">全不选</button></div></div><div class="input-group"><label>小孩单价</label><input class="input-field" type="number" id="childPrice_edit" value="' + (exp.childPrice || 0) + '" step="0.01" oninput="updateSplitTotal_edit()"></div><div class="checkbox-list" id="childCheckboxList_edit">' + childMembers.map(function(m) { var checked = exp.childMemberIds && exp.childMemberIds.includes(m.id) ? ' checked' : ''; return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '"' + checked + ' onchange="updateSplitTotal_edit()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (小孩)</label>'; }).join('') + '</div><div class="subtotal-text">已选 <strong id="childSelectedCount_edit">' + (exp.childMemberIds ? exp.childMemberIds.length : 0) + '</strong> 人，小计：<strong id="childSubtotal_edit">¥' + ((exp.childPrice || 0) * (exp.childMemberIds ? exp.childMemberIds.length : 0)).toFixed(2) + '</strong></div></div>';
+    h += '<div class="total-text">总计：<span id="splitTotal_edit">¥' + exp.amount.toFixed(2) + '</span></div><div style="background:#faf7f3;border-radius:16px;padding:10px;font-size:0.75rem;color:#7b6452;">💡 区分模式将按<strong>家庭</strong>自动均摊</div></div>';
+
+    // 其他（3种收费方式）
+    h += '<div id="otherSection_edit"' + (exp.expenseType === 'other' ? ' style="display:block;"' : ' style="display:none;"') + '>';
+    h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👤 按大人收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'otherAdultCheckboxList_edit\',\'updateOtherTotal_edit\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'otherAdultCheckboxList_edit\',\'updateOtherTotal_edit\')">全不选</button></div></div><div class="input-group"><label>大人单价</label><input class="input-field" type="number" id="otherAdultPrice_edit" value="' + (exp.adultPrice || 0) + '" step="0.01" oninput="updateOtherTotal_edit()"></div><div class="checkbox-list" id="otherAdultCheckboxList_edit">' + allMembers.map(function(m) { var checked = exp.adultMemberIds && exp.adultMemberIds.includes(m.id) ? ' checked' : ''; return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '"' + checked + ' onchange="updateOtherTotal_edit()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (' + (m.type === 'adult' ? '大人' : '小孩') + ')</label>'; }).join('') + '</div><div class="subtotal-text">已选 <strong id="otherAdultSelectedCount_edit">' + (exp.adultMemberIds ? exp.adultMemberIds.length : 0) + '</strong> 人，小计：<strong id="otherAdultSubtotal_edit">¥' + ((exp.adultPrice || 0) * (exp.adultMemberIds ? exp.adultMemberIds.length : 0)).toFixed(2) + '</strong></div></div>';
+    h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👶 按小孩收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'otherChildCheckboxList_edit\',\'updateOtherTotal_edit\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'otherChildCheckboxList_edit\',\'updateOtherTotal_edit\')">全不选</button></div></div><div class="input-group"><label>小孩单价</label><input class="input-field" type="number" id="otherChildPrice_edit" value="' + (exp.childPrice || 0) + '" step="0.01" oninput="updateOtherTotal_edit()"></div><div class="checkbox-list" id="otherChildCheckboxList_edit">' + childMembers.map(function(m) { var checked = exp.childMemberIds && exp.childMemberIds.includes(m.id) ? ' checked' : ''; return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '"' + checked + ' onchange="updateOtherTotal_edit()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (小孩)</label>'; }).join('') + '</div><div class="subtotal-text">已选 <strong id="otherChildSelectedCount_edit">' + (exp.childMemberIds ? exp.childMemberIds.length : 0) + '</strong> 人，小计：<strong id="otherChildSubtotal_edit">¥' + ((exp.childPrice || 0) * (exp.childMemberIds ? exp.childMemberIds.length : 0)).toFixed(2) + '</strong></div></div>';
+    h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>🔘 按其他收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'otherOtherCheckboxList_edit\',\'updateOtherTotal_edit\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'otherOtherCheckboxList_edit\',\'updateOtherTotal_edit\')">全不选</button></div></div><div class="input-group"><label>其他单价</label><input class="input-field" type="number" id="otherOtherPrice_edit" value="' + (exp.otherPrice || 0) + '" step="0.01" oninput="updateOtherTotal_edit()"></div><div class="checkbox-list" id="otherOtherCheckboxList_edit">' + allMembers.map(function(m) { var checked = exp.otherMemberIds && exp.otherMemberIds.includes(m.id) ? ' checked' : ''; return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '"' + checked + ' onchange="updateOtherTotal_edit()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (' + (m.type === 'adult' ? '大人' : '小孩') + ')</label>'; }).join('') + '</div><div class="subtotal-text">已选 <strong id="otherOtherSelectedCount_edit">' + (exp.otherMemberIds ? exp.otherMemberIds.length : 0) + '</strong> 人，小计：<strong id="otherOtherSubtotal_edit">¥' + ((exp.otherPrice || 0) * (exp.otherMemberIds ? exp.otherMemberIds.length : 0)).toFixed(2) + '</strong></div></div>';
+    h += '<div class="total-text">总计：<span id="otherTotal_edit">¥' + exp.amount.toFixed(2) + '</span></div><div style="background:#faf7f3;border-radius:16px;padding:10px;font-size:0.75rem;color:#7b6452;">💡 其他模式将按<strong>家庭</strong>自动均摊</div></div>';
+
+    h += '<div class="input-group"><label>📅 时间</label><input class="input-field" type="datetime-local" id="editDateTime" value="' + new Date(exp.dateTime).toISOString().slice(0, 16) + '"></div>';
+    h += '<div class="input-group"><label>👤 付款家庭</label><select class="input-field" id="editPayer">' + trip.families.map(function(f) { return '<option value="' + f.id + '"' + (f.id === exp.paidByFamilyId ? ' selected' : '') + '>' + esc(f.name) + '</option>'; }).join('') + '</select></div>';
+    h += '<div class="action-row"><button class="btn btn-primary" style="flex:1;" onclick="saveExpenseEdit(\'' + exp.id + '\')">💾 保存</button><button class="btn btn-danger" style="flex:1;" onclick="deleteExpense(\'' + exp.id + '\')">🗑️ 删除</button></div></div></div>';
+    area.innerHTML = h;
+  }
+
+  window.saveExpenseEdit = function(id) {
+    var trip = getTrip(); if (!trip) return;
+    var exp = trip.expenses.find(function(e) { return e.id === id; }); if (!exp) return;
+    var expenseType = document.getElementById('expenseType_edit').value;
+    exp.location = document.getElementById('editLocation').value.trim();
+    exp.description = document.getElementById('editDesc').value.trim();
+    exp.dateTime = new Date(document.getElementById('editDateTime').value).toISOString();
+    exp.paidByFamilyId = document.getElementById('editPayer').value;
+    var familyShares = {}, sharedFamilyIds = [], sharedMemberIds = [];
+
+    if (expenseType === 'unified') {
+      exp.expenseType = 'unified'; exp.adultPrice = 0; exp.childPrice = 0; exp.otherPrice = 0; exp.adultMemberIds = []; exp.childMemberIds = []; exp.otherMemberIds = [];
+      exp.amount = parseFloat(document.getElementById('editAmount').value) || 0;
+      if (exp.amount <= 0) return alert('请输入有效金额');
+      sharedMemberIds = Array.from(document.querySelectorAll('#personCheckboxList_edit input:checked')).map(function(c) { return c.value; });
+      if (sharedMemberIds.length === 0) return alert('请选择均摊人员');
+      trip.families.forEach(function(f) { familyShares[f.id] = 0; });
+      var perPerson = exp.amount / sharedMemberIds.length;
+      sharedMemberIds.forEach(function(mid) { var fid = mid.split('_')[1]; if (familyShares[fid] !== undefined) familyShares[fid] += perPerson; });
+      sharedFamilyIds = Object.keys(familyShares).filter(function(fid) { return familyShares[fid] > 0; });
+    } else if (expenseType === 'split') {
+      exp.expenseType = 'split'; exp.adultPrice = parseFloat(document.getElementById('adultPrice_edit').value) || 0; exp.childPrice = parseFloat(document.getElementById('childPrice_edit').value) || 0; exp.otherPrice = 0;
+      exp.adultMemberIds = Array.from(document.querySelectorAll('#adultCheckboxList_edit input:checked')).map(function(cb) { return cb.value; });
+      exp.childMemberIds = Array.from(document.querySelectorAll('#childCheckboxList_edit input:checked')).map(function(cb) { return cb.value; });
+      exp.otherMemberIds = [];
+      exp.amount = exp.adultPrice * exp.adultMemberIds.length + exp.childPrice * exp.childMemberIds.length;
+      if (exp.amount <= 0) return alert('请输入有效单价');
+      familyShares = calculateFamilyShares(trip, 'split', exp.adultPrice, exp.childPrice, 0, exp.adultMemberIds, exp.childMemberIds, []);
+      sharedFamilyIds = Object.keys(familyShares).filter(function(fid) { return familyShares[fid] > 0; });
+      trip.families.forEach(function(f) { if (familyShares[f.id] > 0) { f.members.forEach(function(m) { sharedMemberIds.push(m.id); }); } });
+    } else if (expenseType === 'other') {
+      exp.expenseType = 'other';
+      exp.adultPrice = parseFloat(document.getElementById('otherAdultPrice_edit').value) || 0;
+      exp.childPrice = parseFloat(document.getElementById('otherChildPrice_edit').value) || 0;
+      exp.otherPrice = parseFloat(document.getElementById('otherOtherPrice_edit').value) || 0;
+      exp.adultMemberIds = Array.from(document.querySelectorAll('#otherAdultCheckboxList_edit input:checked')).map(function(cb) { return cb.value; });
+      exp.childMemberIds = Array.from(document.querySelectorAll('#otherChildCheckboxList_edit input:checked')).map(function(cb) { return cb.value; });
+      exp.otherMemberIds = Array.from(document.querySelectorAll('#otherOtherCheckboxList_edit input:checked')).map(function(cb) { return cb.value; });
+      exp.amount = exp.adultPrice * exp.adultMemberIds.length + exp.childPrice * exp.childMemberIds.length + exp.otherPrice * exp.otherMemberIds.length;
+      if (exp.amount <= 0) return alert('请输入有效单价');
+      familyShares = calculateFamilyShares(trip, 'other', exp.adultPrice, exp.childPrice, exp.otherPrice, exp.adultMemberIds, exp.childMemberIds, exp.otherMemberIds);
+      sharedFamilyIds = Object.keys(familyShares).filter(function(fid) { return familyShares[fid] > 0; });
+      trip.families.forEach(function(f) { if (familyShares[f.id] > 0) { f.members.forEach(function(m) { sharedMemberIds.push(m.id); }); } });
+    }
+    exp.familyShares = familyShares; exp.sharedFamilyIds = sharedFamilyIds; exp.sharedMemberIds = sharedMemberIds;
+    save(); editingExpenseId = null; showDetailedExpenses(appData.activeTripId);
+  };
+
+  window.deleteExpense = function(id) { if (!confirm('确定删除？')) return; var trip = getTrip(); trip.expenses = trip.expenses.filter(function(e) { return e.id !== id; }); save(); editingExpenseId = null; showDetailedExpenses(appData.activeTripId); };
+
+  // ==================== 设置 ====================
+  function renderSettings() {
+    var area = document.getElementById('contentArea');
+    var h = '<div><h3>⚙️ 备份与恢复</h3>';
+    h += '<div class="settings-card"><h3>📤 备份数据</h3><p>导出所有数据为文件</p><button class="btn btn-primary" onclick="backupData()">📥 导出备份</button></div>';
+    h += '<div class="settings-card"><h3>📥 恢复数据</h3><p style="color:#c0392b;">⚠️ 将覆盖当前数据</p><input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="restoreData(event)"><button class="btn btn-info" onclick="document.getElementById(\'restoreFileInput\').click()">📂 选择文件恢复</button></div>';
+    h += '<div class="settings-card"><h3>🔄 重置数据</h3><p>恢复默认设置和预置行程</p><button class="btn btn-danger" onclick="resetData()">🗑️ 重置</button></div>';
+    h += '<div style="text-align:center; color:#b8a28c; font-size:0.65rem; margin-top:20px;">版本 V2026-06-23 18:30</div>';
+    h += '</div>';
+    area.innerHTML = h;
+  }
+
+  window.backupData = function() { var data = JSON.stringify(appData, null, 2); var blob = new Blob([data], { type: 'application/json' }); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '自驾乐游天下_备份_' + new Date().toISOString().slice(0,10) + '.json'; a.click(); alert('✅ 备份完成！'); };
+  window.restoreData = function(e) { var file = e.target.files[0]; if (!file) return; var reader = new FileReader(); reader.onload = function(ev) { try { var data = JSON.parse(ev.target.result); if (!data.trips) throw new Error('格式错误'); if (!confirm('⚠️ 确定恢复？当前数据将被覆盖！')) { e.target.value = ''; return; } appData = data; save(); updateTripSelect(); setupDetailTripId = null; summaryDetailTripId = null; editingExpenseId = null; alert('✅ 恢复成功！'); render(); } catch(err) { alert('❌ 文件格式不正确'); } e.target.value = ''; }; reader.readAsText(file); };
+  window.resetData = function() { if (!confirm('⚠️ 确定重置所有数据？')) return; if (!confirm('再次确认？')) return; initDefault(); save(); updateTripSelect(); setupDetailTripId = null; summaryDetailTripId = null; editingExpenseId = null; alert('✅ 已重置'); render(); };
+
+  load(); updateTripSelect();
+  document.getElementById('splashScreen').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+})();
+</script>
+</body>
+</html>
