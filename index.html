@@ -163,7 +163,6 @@
 })();
 
 (function() {
-  // ⚠️ 请勿修改此KEY，否则会导致本地数据丢失
   var STORAGE_KEY = 'drive_trip_v15';
   var appData = { trips: {}, activeTripId: null, globalFamilies: [] };
   var setupDetailTripId = null, summaryDetailTripId = null, editingExpenseId = null, currentTab = 'setup';
@@ -202,11 +201,7 @@
 
   function load() {
     var s = localStorage.getItem(STORAGE_KEY);
-    if (s) {
-      try { appData = JSON.parse(s); } catch(e) { initDefault(); }
-    } else {
-      initDefault();
-    }
+    if (s) { try { appData = JSON.parse(s); } catch(e) { initDefault(); } } else { initDefault(); }
     if (!appData.trips) appData.trips = {};
     if (!appData.globalFamilies || !appData.globalFamilies.length) appData.globalFamilies = getDefaultFamilies();
     var presetTrips = getPresetTripData();
@@ -264,7 +259,6 @@
     }
   }
 
-  // 分享弹窗
   window.showShareModal = function(tripId) {
     var old = document.getElementById('shareModalOverlay'); if (old) document.body.removeChild(old);
     var overlay = document.createElement('div'); overlay.className = 'share-modal-overlay'; overlay.id = 'shareModalOverlay';
@@ -299,19 +293,14 @@
     XLSX.writeFile(wb,trip.name+'_费用报表.xlsx'); alert('✅ Excel报表已生成并下载！');
   };
 
-  // 修改出游活动名称
   window.editTripName = function(tripId) {
-    var trip = appData.trips[tripId];
-    if (!trip) return;
+    var trip = appData.trips[tripId]; if (!trip) return;
     var newName = prompt('修改出游活动名称：', trip.name);
     if (!newName || !newName.trim()) return;
     trip.name = newName.trim();
-    save();
-    updateTripSelect();
-    render();
+    save(); updateTripSelect(); render();
   };
 
-  // ==================== 家庭设置 ====================
   function renderSetup() {
     var area = document.getElementById('contentArea');
     if (setupDetailTripId) { renderSetupDetail(setupDetailTripId); return; }
@@ -372,7 +361,6 @@
     h += '<div class="input-group"><label>📂 费用类型</label><select class="input-field" id="expenseType" onchange="toggleExpenseType(\'new\')"><option value="unified">💰 统一费用（所有人相同）</option><option value="split">👤👶 区分大人/小孩（单价不同）</option><option value="other">🔢 其他（3种收费方式）</option></select></div>';
     h += '<div class="input-group"><label>📝 描述</label><input class="input-field" id="expDesc" placeholder="午餐、门票"></div>';
 
-    // 统一费用区域
     h += '<div id="unifiedSection_new">';
     h += '<div class="input-group"><label>💰 总金额</label><input class="input-field" type="number" id="expAmount" placeholder="0.00" step="0.01"></div>';
     h += '<div class="input-group"><label>✅ 均摊人员</label>';
@@ -380,7 +368,6 @@
     h += '<div class="checkbox-list" id="personCheckboxList_new">' + allMembers.map(function(m) { return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '" checked> ' + esc(m.familyName) + '·' + esc(m.name) + ' (' + (m.type === 'adult' ? '大人' : '小孩') + ')</label>'; }).join('') + '</div></div>';
     h += '</div>';
 
-    // 区分大人/小孩区域
     h += '<div id="splitSection_new" style="display:none;">';
     h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👤 按大人收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'adultCheckboxList_new\',\'updateSplitTotal_new\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'adultCheckboxList_new\',\'updateSplitTotal_new\')">全不选</button></div></div>';
     h += '<div class="hint-text">勾选所有按大人单价收费的人员（含身高超标的儿童）</div>';
@@ -397,7 +384,6 @@
     h += '<div style="background:#faf7f3;border-radius:16px;padding:10px;font-size:0.75rem;color:#7b6452;">💡 区分模式将按<strong>家庭</strong>自动均摊</div>';
     h += '</div>';
 
-    // 其他（3种收费方式）区域
     h += '<div id="otherSection_new" style="display:none;">';
     h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👤 按大人收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'otherAdultCheckboxList_new\',\'updateOtherTotal_new\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'otherAdultCheckboxList_new\',\'updateOtherTotal_new\')">全不选</button></div></div>';
     h += '<div class="hint-text">勾选所有按大人单价收费的人员</div>';
@@ -442,15 +428,9 @@
     var other = document.getElementById('otherSection_' + prefix);
     var type = document.getElementById('expenseType' + (prefix === 'edit' ? '_edit' : ''));
     if (!type) { unified.style.display = 'block'; split.style.display = 'none'; if(other) other.style.display = 'none'; return; }
-    if (type.value === 'unified') {
-      unified.style.display = 'block'; split.style.display = 'none'; if(other) other.style.display = 'none';
-    } else if (type.value === 'split') {
-      unified.style.display = 'none'; split.style.display = 'block'; if(other) other.style.display = 'none';
-      if (prefix === 'new') updateSplitTotal_new(); else if (prefix === 'edit') updateSplitTotal_edit();
-    } else if (type.value === 'other') {
-      unified.style.display = 'none'; split.style.display = 'none'; if(other) other.style.display = 'block';
-      if (prefix === 'new') updateOtherTotal_new(); else if (prefix === 'edit') updateOtherTotal_edit();
-    }
+    if (type.value === 'unified') { unified.style.display = 'block'; split.style.display = 'none'; if(other) other.style.display = 'none'; }
+    else if (type.value === 'split') { unified.style.display = 'none'; split.style.display = 'block'; if(other) other.style.display = 'none'; if (prefix === 'new') updateSplitTotal_new(); else if (prefix === 'edit') updateSplitTotal_edit(); }
+    else if (type.value === 'other') { unified.style.display = 'none'; split.style.display = 'none'; if(other) other.style.display = 'block'; if (prefix === 'new') updateOtherTotal_new(); else if (prefix === 'edit') updateOtherTotal_edit(); }
   };
 
   window.updateSplitTotal_new = function() {
@@ -635,16 +615,13 @@
     h += '<div class="input-group"><label>📂 类型</label><select class="input-field" id="expenseType_edit" onchange="toggleExpenseType(\'edit\')"><option value="unified"' + (exp.expenseType === 'unified' ? ' selected' : '') + '>💰 统一费用</option><option value="split"' + (exp.expenseType === 'split' ? ' selected' : '') + '>👤👶 区分大人/小孩</option><option value="other"' + (exp.expenseType === 'other' ? ' selected' : '') + '>🔢 其他（3种收费方式）</option></select></div>';
     h += '<div class="input-group"><label>📝 描述</label><input class="input-field" id="editDesc" value="' + esc(exp.description) + '"></div>';
 
-    // 统一费用
     h += '<div id="unifiedSection_edit"' + (exp.expenseType === 'split' || exp.expenseType === 'other' ? ' style="display:none;"' : '') + '><div class="input-group"><label>💰 总金额</label><input class="input-field" type="number" id="editAmount" value="' + exp.amount + '" step="0.01"></div><div class="input-group"><label>✅ 均摊人员</label><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'personCheckboxList_edit\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'personCheckboxList_edit\')">全不选</button></div><div class="checkbox-list" id="personCheckboxList_edit">' + allMembers.map(function(m) { var checked = exp.sharedMemberIds.includes(m.id) ? ' checked' : ''; return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '"' + checked + '> ' + esc(m.familyName) + '·' + esc(m.name) + ' (' + (m.type === 'adult' ? '大人' : '小孩') + ')</label>'; }).join('') + '</div></div></div>';
 
-    // 区分大人/小孩
     h += '<div id="splitSection_edit"' + (exp.expenseType === 'split' ? ' style="display:block;"' : ' style="display:none;"') + '>';
     h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👤 按大人收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'adultCheckboxList_edit\',\'updateSplitTotal_edit\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'adultCheckboxList_edit\',\'updateSplitTotal_edit\')">全不选</button></div></div><div class="input-group"><label>大人单价</label><input class="input-field" type="number" id="adultPrice_edit" value="' + (exp.adultPrice || 0) + '" step="0.01" oninput="updateSplitTotal_edit()"></div><div class="checkbox-list" id="adultCheckboxList_edit">' + allMembers.map(function(m) { var checked = exp.adultMemberIds && exp.adultMemberIds.includes(m.id) ? ' checked' : ''; return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '"' + checked + ' onchange="updateSplitTotal_edit()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (' + (m.type === 'adult' ? '大人' : '小孩') + ')</label>'; }).join('') + '</div><div class="subtotal-text">已选 <strong id="adultSelectedCount_edit">' + (exp.adultMemberIds ? exp.adultMemberIds.length : 0) + '</strong> 人，小计：<strong id="adultSubtotal_edit">¥' + ((exp.adultPrice || 0) * (exp.adultMemberIds ? exp.adultMemberIds.length : 0)).toFixed(2) + '</strong></div></div>';
     h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👶 按小孩收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'childCheckboxList_edit\',\'updateSplitTotal_edit\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'childCheckboxList_edit\',\'updateSplitTotal_edit\')">全不选</button></div></div><div class="input-group"><label>小孩单价</label><input class="input-field" type="number" id="childPrice_edit" value="' + (exp.childPrice || 0) + '" step="0.01" oninput="updateSplitTotal_edit()"></div><div class="checkbox-list" id="childCheckboxList_edit">' + childMembers.map(function(m) { var checked = exp.childMemberIds && exp.childMemberIds.includes(m.id) ? ' checked' : ''; return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '"' + checked + ' onchange="updateSplitTotal_edit()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (小孩)</label>'; }).join('') + '</div><div class="subtotal-text">已选 <strong id="childSelectedCount_edit">' + (exp.childMemberIds ? exp.childMemberIds.length : 0) + '</strong> 人，小计：<strong id="childSubtotal_edit">¥' + ((exp.childPrice || 0) * (exp.childMemberIds ? exp.childMemberIds.length : 0)).toFixed(2) + '</strong></div></div>';
     h += '<div class="total-text">总计：<span id="splitTotal_edit">¥' + exp.amount.toFixed(2) + '</span></div><div style="background:#faf7f3;border-radius:16px;padding:10px;font-size:0.75rem;color:#7b6452;">💡 区分模式将按<strong>家庭</strong>自动均摊</div></div>';
 
-    // 其他（3种收费方式）
     h += '<div id="otherSection_edit"' + (exp.expenseType === 'other' ? ' style="display:block;"' : ' style="display:none;"') + '>';
     h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👤 按大人收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'otherAdultCheckboxList_edit\',\'updateOtherTotal_edit\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'otherAdultCheckboxList_edit\',\'updateOtherTotal_edit\')">全不选</button></div></div><div class="input-group"><label>大人单价</label><input class="input-field" type="number" id="otherAdultPrice_edit" value="' + (exp.adultPrice || 0) + '" step="0.01" oninput="updateOtherTotal_edit()"></div><div class="checkbox-list" id="otherAdultCheckboxList_edit">' + allMembers.map(function(m) { var checked = exp.adultMemberIds && exp.adultMemberIds.includes(m.id) ? ' checked' : ''; return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '"' + checked + ' onchange="updateOtherTotal_edit()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (' + (m.type === 'adult' ? '大人' : '小孩') + ')</label>'; }).join('') + '</div><div class="subtotal-text">已选 <strong id="otherAdultSelectedCount_edit">' + (exp.adultMemberIds ? exp.adultMemberIds.length : 0) + '</strong> 人，小计：<strong id="otherAdultSubtotal_edit">¥' + ((exp.adultPrice || 0) * (exp.adultMemberIds ? exp.adultMemberIds.length : 0)).toFixed(2) + '</strong></div></div>';
     h += '<div class="split-fee-card"><div class="fee-header" style="justify-content:space-between;"><span>👶 按小孩收费</span><div class="select-btns"><button class="btn btn-outline" onclick="selectAll(\'otherChildCheckboxList_edit\',\'updateOtherTotal_edit\')">全选</button><button class="btn btn-outline" onclick="deselectAll(\'otherChildCheckboxList_edit\',\'updateOtherTotal_edit\')">全不选</button></div></div><div class="input-group"><label>小孩单价</label><input class="input-field" type="number" id="otherChildPrice_edit" value="' + (exp.childPrice || 0) + '" step="0.01" oninput="updateOtherTotal_edit()"></div><div class="checkbox-list" id="otherChildCheckboxList_edit">' + childMembers.map(function(m) { var checked = exp.childMemberIds && exp.childMemberIds.includes(m.id) ? ' checked' : ''; return '<label class="person-checkbox"><input type="checkbox" value="' + m.id + '"' + checked + ' onchange="updateOtherTotal_edit()"> ' + esc(m.familyName) + '·' + esc(m.name) + ' (小孩)</label>'; }).join('') + '</div><div class="subtotal-text">已选 <strong id="otherChildSelectedCount_edit">' + (exp.childMemberIds ? exp.childMemberIds.length : 0) + '</strong> 人，小计：<strong id="otherChildSubtotal_edit">¥' + ((exp.childPrice || 0) * (exp.childMemberIds ? exp.childMemberIds.length : 0)).toFixed(2) + '</strong></div></div>';
@@ -666,7 +643,6 @@
     exp.dateTime = new Date(document.getElementById('editDateTime').value).toISOString();
     exp.paidByFamilyId = document.getElementById('editPayer').value;
     var familyShares = {}, sharedFamilyIds = [], sharedMemberIds = [];
-
     if (expenseType === 'unified') {
       exp.expenseType = 'unified'; exp.adultPrice = 0; exp.childPrice = 0; exp.otherPrice = 0; exp.adultMemberIds = []; exp.childMemberIds = []; exp.otherMemberIds = [];
       exp.amount = parseFloat(document.getElementById('editAmount').value) || 0;
@@ -714,7 +690,8 @@
     h += '<div class="settings-card"><h3>📤 备份数据</h3><p>导出所有数据为文件</p><button class="btn btn-primary" onclick="backupData()">📥 导出备份</button></div>';
     h += '<div class="settings-card"><h3>📥 恢复数据</h3><p style="color:#c0392b;">⚠️ 将覆盖当前数据</p><input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="restoreData(event)"><button class="btn btn-info" onclick="document.getElementById(\'restoreFileInput\').click()">📂 选择文件恢复</button></div>';
     h += '<div class="settings-card"><h3>🔄 重置数据</h3><p>恢复默认设置和预置行程</p><button class="btn btn-danger" onclick="resetData()">🗑️ 重置</button></div>';
-    h += '<div style="text-align:center; color:#b8a28c; font-size:0.65rem; margin-top:20px;">版本 V2026-06-23 18:30</div>';
+    h += '<div style="text-align:center; color:#b8a28c; font-size:0.65rem; margin-top:20px;">版本 V2026-06-23 19:00</div>';
+    h += '<div style="text-align:center; color:#c0392b; font-size:0.6rem; margin-top:4px;">⚠️ 请使用浏览器访问填写，所有数据仅存在本地，请及时备份！</div>';
     h += '</div>';
     area.innerHTML = h;
   }
