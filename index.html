@@ -47,6 +47,9 @@
     .art-title .sub-text { font-size: 0.95rem; letter-spacing: 4px; color: #5D4037; margin-top: 6px; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
     .enter-btn { position: relative; z-index: 10; margin-top: 15px; padding: 14px 50px; background: linear-gradient(135deg, #FF9800, #F57C00); border: none; border-radius: 50px; color: #fff; font-size: 1.1rem; font-weight: 700; letter-spacing: 3px; cursor: pointer; box-shadow: 0 6px 25px rgba(255,152,0,0.5); animation: btnPulse 2s ease-in-out infinite; }
     @keyframes btnPulse { 0%,100%{box-shadow:0 6px 25px rgba(255,152,0,0.5);transform:scale(1);} 50%{box-shadow:0 10px 35px rgba(255,152,0,0.8);transform:scale(1.03);} }
+    .splash-footer { position: absolute; bottom: 20px; z-index: 10; text-align: center; width: 100%; }
+    .splash-footer .version-text { color: #b8a28c; font-size: 0.65rem; }
+    .splash-footer .warn-text { color: #c0392b; font-size: 0.6rem; margin-top: 2px; }
 
     .main-app { display: flex; flex-direction: column; height: 100%; }
     .header { background: #fffbf7; padding: 12px 16px 8px; border-bottom: 1px solid #ede4d8; text-align: center; }
@@ -146,6 +149,10 @@
     <div class="travel-icons" style="top:16%;left:5%;">🏕️</div><div class="travel-icons" style="top:14%;right:8%;animation-delay:0.5s;">🧳</div>
     <div class="art-title"><div class="main-text">自驾乐游天下</div><div class="sub-text">✦ 驰骋山海 · 快乐分摊 ✦</div></div>
     <button class="enter-btn" onclick="enterApp()">🚗 出发记账</button>
+    <div class="splash-footer">
+      <div class="version-text">版本 V2026-06-24 10:00</div>
+      <div class="warn-text">⚠️ 请使用浏览器访问填写，所有数据仅存在本地，请及时备份！</div>
+    </div>
   </div>
 
   <div class="main-app" id="mainApp" style="display:none;">
@@ -690,7 +697,7 @@
     h += '<div class="settings-card"><h3>📤 备份数据</h3><p>导出所有数据为文件</p><button class="btn btn-primary" onclick="backupData()">📥 导出备份</button></div>';
     h += '<div class="settings-card"><h3>📥 恢复数据</h3><p style="color:#c0392b;">⚠️ 将覆盖当前数据</p><input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="restoreData(event)"><button class="btn btn-info" onclick="document.getElementById(\'restoreFileInput\').click()">📂 选择文件恢复</button></div>';
     h += '<div class="settings-card"><h3>🔄 重置数据</h3><p>恢复默认设置和预置行程</p><button class="btn btn-danger" onclick="resetData()">🗑️ 重置</button></div>';
-    h += '<div style="text-align:center; color:#b8a28c; font-size:0.65rem; margin-top:20px;">版本 V2026-06-23 19:00</div>';
+    h += '<div style="text-align:center; color:#b8a28c; font-size:0.65rem; margin-top:20px;">版本 V2026-06-24 10:00</div>';
     h += '<div style="text-align:center; color:#c0392b; font-size:0.6rem; margin-top:4px;">⚠️ 请使用浏览器访问填写，所有数据仅存在本地，请及时备份！</div>';
     h += '</div>';
     area.innerHTML = h;
